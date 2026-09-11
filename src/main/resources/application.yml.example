@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: almara-backend
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:almara_db}
+    username: ${POSTGRES_USER:almara_user}
+    password: ${POSTGRES_PASSWORD:almara_secret_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect
+        format_sql: true
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:almara_redis_password}
+
+# Configuración de Seguridad y JWT
+almara:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:almara_super_secret_jwt_key_for_development_purposes_only_1234567890}
+      expiration-ms: 86400000 # 24 horas
+  h3:
+    default-resolution: 9 # Resolución estándar para hexágonos urbanos (~100m)
+  privacy:
+    default-k-anonymity: 5 # k-anonimato base mínimo
