@@ -1,4 +1,4 @@
-package com.almara.modules.emotion;
+package com.almara.modules.emotion.models;
 
 /**
  * DTO para exponer las propiedades completas de una emoción en el catálogo público.

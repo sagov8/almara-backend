@@ -1,24 +1,30 @@
-package com.almara.modules.emotion;
+package com.almara.modules.emotion.models;
 
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Evento de dominio emitido al registrar exitosamente una emoción.
+ * Evento de dominio emitido al registrar exitosamente una emoción ciudadana (HU-01 y HU-04).
  * Forma parte del patrón Publicador/Suscriptor (Pub/Sub) para desacoplar el procesamiento
  * del mapa de calor y análisis CEP de la respuesta HTTP inmediata (< 1000 ms).
+ * Cumple con RNF Seguridad: No incluye coordenadas precisas, solo el identificador de celda H3 anónima.
  */
 public class EventoEmocionRegistrada {
 
     private final UUID idEvento;
     private final TipoEmocion emocion;
     private final String tokenSesionTemporal;
+    private final String idCeldaH3;
+    private final String zonaManualId;
     private final Instant fechaHoraEnvio;
 
-    public EventoEmocionRegistrada(UUID idEvento, TipoEmocion emocion, String tokenSesionTemporal, Instant fechaHoraEnvio) {
+    public EventoEmocionRegistrada(UUID idEvento, TipoEmocion emocion, String tokenSesionTemporal,
+                                  String idCeldaH3, String zonaManualId, Instant fechaHoraEnvio) {
         this.idEvento = idEvento;
         this.emocion = emocion;
         this.tokenSesionTemporal = tokenSesionTemporal;
+        this.idCeldaH3 = idCeldaH3;
+        this.zonaManualId = zonaManualId;
         this.fechaHoraEnvio = fechaHoraEnvio;
     }
 
@@ -38,6 +44,14 @@ public class EventoEmocionRegistrada {
         return tokenSesionTemporal;
     }
 
+    public String getIdCeldaH3() {
+        return idCeldaH3;
+    }
+
+    public String getZonaManualId() {
+        return zonaManualId;
+    }
+
     public Instant getFechaHoraEnvio() {
         return fechaHoraEnvio;
     }
@@ -47,7 +61,8 @@ public class EventoEmocionRegistrada {
         return "EventoEmocionRegistrada{" +
                 "idEvento=" + idEvento +
                 ", emocion=" + emocion +
-                ", tokenSesionTemporal='" + tokenSesionTemporal + '\'' +
+                ", idCeldaH3='" + idCeldaH3 + '\'' +
+                ", zonaManualId='" + zonaManualId + '\'' +
                 ", fechaHoraEnvio=" + fechaHoraEnvio +
                 '}';
     }
@@ -56,6 +71,8 @@ public class EventoEmocionRegistrada {
         private UUID idEvento;
         private TipoEmocion emocion;
         private String tokenSesionTemporal;
+        private String idCeldaH3;
+        private String zonaManualId;
         private Instant fechaHoraEnvio;
 
         public Constructor idEvento(UUID idEvento) {
@@ -73,13 +90,23 @@ public class EventoEmocionRegistrada {
             return this;
         }
 
+        public Constructor idCeldaH3(String idCeldaH3) {
+            this.idCeldaH3 = idCeldaH3;
+            return this;
+        }
+
+        public Constructor zonaManualId(String zonaManualId) {
+            this.zonaManualId = zonaManualId;
+            return this;
+        }
+
         public Constructor fechaHoraEnvio(Instant fechaHoraEnvio) {
             this.fechaHoraEnvio = fechaHoraEnvio;
             return this;
         }
 
         public EventoEmocionRegistrada build() {
-            return new EventoEmocionRegistrada(idEvento, emocion, tokenSesionTemporal, fechaHoraEnvio);
+            return new EventoEmocionRegistrada(idEvento, emocion, tokenSesionTemporal, idCeldaH3, zonaManualId, fechaHoraEnvio);
         }
     }
 }

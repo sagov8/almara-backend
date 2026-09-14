@@ -78,6 +78,38 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(ExcepcionUbicacionRequerida.class)
+    public ResponseEntity<RespuestaError> manejarUbicacionRequerida(
+            ExcepcionUbicacionRequerida ex,
+            HttpServletRequest peticion) {
+
+        RespuestaError error = RespuestaError.builder()
+                .marcaTemporal(Instant.now())
+                .codigoEstado(HttpStatus.BAD_REQUEST.value())
+                .error("UBICACION_REQUERIDA")
+                .mensaje(ex.getMessage())
+                .ruta(peticion.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(ExcepcionZonaNoEncontrada.class)
+    public ResponseEntity<RespuestaError> manejarZonaNoEncontrada(
+            ExcepcionZonaNoEncontrada ex,
+            HttpServletRequest peticion) {
+
+        RespuestaError error = RespuestaError.builder()
+                .marcaTemporal(Instant.now())
+                .codigoEstado(HttpStatus.NOT_FOUND.value())
+                .error("ZONA_NO_ENCONTRADA")
+                .mensaje(ex.getMessage())
+                .ruta(peticion.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespuestaError> manejarExcepcionGeneral(
             Exception ex,

@@ -16,3 +16,6 @@ almara:
   emocion:
     # Lapso de bloqueo para la misma sesión/dispositivo (Criterio 1: 15 minutos = 900 segundos)
     segundos-bloqueo: 900
+  h3:
+    # Resolución estándar H3 para hexágonos urbanos (~100m - ~450m, RNF Adecuación Funcional)
+    default-resolution: 9

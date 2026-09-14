@@ -1,4 +1,4 @@
-package com.almara.modules.emotion;
+package com.almara.modules.emotion.services;
 
 import com.almara.common.ExcepcionSolicitudesExcesivas;
 import org.slf4j.Logger;

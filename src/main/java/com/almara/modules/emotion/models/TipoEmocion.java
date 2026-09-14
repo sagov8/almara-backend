@@ -1,4 +1,4 @@
-package com.almara.modules.emotion;
+package com.almara.modules.emotion.models;
 
 /**
  * Catálogo predeterminado de emociones soportadas por Almara.

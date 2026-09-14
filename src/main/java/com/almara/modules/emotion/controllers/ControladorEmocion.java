@@ -1,5 +1,10 @@
-package com.almara.modules.emotion;
+package com.almara.modules.emotion.controllers;
 
+import com.almara.modules.emotion.models.ElementoCatalogoEmocion;
+import com.almara.modules.emotion.models.RegistroEmocionRespuesta;
+import com.almara.modules.emotion.models.RegistroEmocionSolicitud;
+import com.almara.modules.emotion.models.TipoEmocion;
+import com.almara.modules.emotion.services.ServicioRegistroEmocion;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * Controlador REST para la selección y registro de emociones ciudadanas (HU-01 y HU-04).
+ */
 @RestController
 @RequestMapping("/api/v1/emociones")
 @CrossOrigin(origins = "*") // Permite llamadas desde Expo / React Native
@@ -21,7 +28,7 @@ public class ControladorEmocion {
     }
 
     /**
-     * Endpoint principal para seleccionar y registrar una emoción anónima.
+     * Endpoint principal para seleccionar y registrar una emoción anónima asociada a una celda H3.
      * Tiempo de respuesta garantizado < 1000 ms bajo condiciones normales.
      */
     @PostMapping("/seleccionar")
