@@ -1,25 +1,49 @@
 package com.almara.modules.geo.models;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 /**
- * Modelo de dominio que representa una zona geográfica / celda H3 urbana.
- * Basado en el esquema de base de datos de Almara (Tabla Zona).
+ * Entidad JPA mapeada a la tabla zona del modelo de datos de Almara (almara_dbdiagram.dbml).
+ * Representa los sectores urbanos y sus celdas H3 (HU-04, HU-13, HU-14).
  */
-public class Zona {
+@Entity
+@Table(name = "zona")
+public class EntidadZona {
 
+    @Id
+    @Column(name = "id_celda_h3", length = 15, nullable = false)
     private String idCeldaH3;
-    private int resolucionH3;
-    private Double latitudCentroide;
-    private Double longitudCentroide;
-    private String zonaManualId;
-    private String nombreZonaManual;
-    private String descripcion;
-    private int umbralMinimo;
 
-    public Zona() {
+    @Column(name = "resolucion_h3", nullable = false)
+    private Integer resolucionH3;
+
+    @Column(name = "latitud_centroide", nullable = false)
+    private Double latitudCentroide;
+
+    @Column(name = "longitud_centroide", nullable = false)
+    private Double longitudCentroide;
+
+    @Column(name = "zona_manual_id", length = 50, unique = true)
+    private String zonaManualId;
+
+    @Column(name = "nombre_zona_manual", length = 100)
+    private String nombreZonaManual;
+
+    @Column(name = "descripcion", length = 255)
+    private String descripcion;
+
+    @Column(name = "umbral_minimo", nullable = false)
+    private Integer umbralMinimo;
+
+    public EntidadZona() {
     }
 
-    public Zona(String idCeldaH3, int resolucionH3, Double latitudCentroide, Double longitudCentroide,
-                String zonaManualId, String nombreZonaManual, String descripcion, int umbralMinimo) {
+    public EntidadZona(String idCeldaH3, Integer resolucionH3, Double latitudCentroide,
+                       Double longitudCentroide, String zonaManualId, String nombreZonaManual,
+                       String descripcion, Integer umbralMinimo) {
         this.idCeldaH3 = idCeldaH3;
         this.resolucionH3 = resolucionH3;
         this.latitudCentroide = latitudCentroide;
@@ -30,8 +54,9 @@ public class Zona {
         this.umbralMinimo = umbralMinimo;
     }
 
-    public Zona(String idCeldaH3, int resolucionH3, Double latitudCentroide, Double longitudCentroide,
-                String zonaManualId, String nombreZonaManual, int umbralMinimo) {
+    public EntidadZona(String idCeldaH3, Integer resolucionH3, Double latitudCentroide,
+                       Double longitudCentroide, String zonaManualId, String nombreZonaManual,
+                       Integer umbralMinimo) {
         this(idCeldaH3, resolucionH3, latitudCentroide, longitudCentroide, zonaManualId, nombreZonaManual, null, umbralMinimo);
     }
 
@@ -47,11 +72,11 @@ public class Zona {
         this.idCeldaH3 = idCeldaH3;
     }
 
-    public int getResolucionH3() {
+    public Integer getResolucionH3() {
         return resolucionH3;
     }
 
-    public void setResolucionH3(int resolucionH3) {
+    public void setResolucionH3(Integer resolucionH3) {
         this.resolucionH3 = resolucionH3;
     }
 
@@ -95,30 +120,30 @@ public class Zona {
         this.descripcion = descripcion;
     }
 
-    public int getUmbralMinimo() {
+    public Integer getUmbralMinimo() {
         return umbralMinimo;
     }
 
-    public void setUmbralMinimo(int umbralMinimo) {
+    public void setUmbralMinimo(Integer umbralMinimo) {
         this.umbralMinimo = umbralMinimo;
     }
 
     public static class Constructor {
         private String idCeldaH3;
-        private int resolucionH3;
+        private Integer resolucionH3 = 9;
         private Double latitudCentroide;
         private Double longitudCentroide;
         private String zonaManualId;
         private String nombreZonaManual;
         private String descripcion;
-        private int umbralMinimo = 5;
+        private Integer umbralMinimo = 5;
 
         public Constructor idCeldaH3(String idCeldaH3) {
             this.idCeldaH3 = idCeldaH3;
             return this;
         }
 
-        public Constructor resolucionH3(int resolucionH3) {
+        public Constructor resolucionH3(Integer resolucionH3) {
             this.resolucionH3 = resolucionH3;
             return this;
         }
@@ -148,14 +173,13 @@ public class Zona {
             return this;
         }
 
-        public Constructor umbralMinimo(int umbralMinimo) {
+        public Constructor umbralMinimo(Integer umbralMinimo) {
             this.umbralMinimo = umbralMinimo;
             return this;
         }
 
-        public Zona build() {
-            return new Zona(idCeldaH3, resolucionH3, latitudCentroide, longitudCentroide,
-                    zonaManualId, nombreZonaManual, descripcion, umbralMinimo);
+        public EntidadZona build() {
+            return new EntidadZona(idCeldaH3, resolucionH3, latitudCentroide, longitudCentroide, zonaManualId, nombreZonaManual, descripcion, umbralMinimo);
         }
     }
 }

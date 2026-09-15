@@ -2,12 +2,13 @@ package com.almara.modules.geo.models;
 
 /**
  * DTO para exponer las zonas del catálogo predefinido para selección manual
- * cuando el usuario decide no otorgar permisos GPS (HU-04, Criterio 4).
+ * cuando el usuario decide no otorgar permisos GPS
  */
 public class ElementoCatalogoZona {
 
     private String zonaManualId;
     private String nombre;
+    private String descripcion;
     private String idCeldaH3;
     private int resolucionH3;
     private Double latitudCentroide;
@@ -16,14 +17,20 @@ public class ElementoCatalogoZona {
     public ElementoCatalogoZona() {
     }
 
-    public ElementoCatalogoZona(String zonaManualId, String nombre, String idCeldaH3,
+    public ElementoCatalogoZona(String zonaManualId, String nombre, String descripcion, String idCeldaH3,
                                 int resolucionH3, Double latitudCentroide, Double longitudCentroide) {
         this.zonaManualId = zonaManualId;
         this.nombre = nombre;
+        this.descripcion = descripcion;
         this.idCeldaH3 = idCeldaH3;
         this.resolucionH3 = resolucionH3;
         this.latitudCentroide = latitudCentroide;
         this.longitudCentroide = longitudCentroide;
+    }
+
+    public ElementoCatalogoZona(String zonaManualId, String nombre, String idCeldaH3,
+                                int resolucionH3, Double latitudCentroide, Double longitudCentroide) {
+        this(zonaManualId, nombre, null, idCeldaH3, resolucionH3, latitudCentroide, longitudCentroide);
     }
 
     public static Constructor builder() {
@@ -44,6 +51,14 @@ public class ElementoCatalogoZona {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
     public String getIdCeldaH3() {
@@ -81,6 +96,7 @@ public class ElementoCatalogoZona {
     public static class Constructor {
         private String zonaManualId;
         private String nombre;
+        private String descripcion;
         private String idCeldaH3;
         private int resolucionH3;
         private Double latitudCentroide;
@@ -93,6 +109,11 @@ public class ElementoCatalogoZona {
 
         public Constructor nombre(String nombre) {
             this.nombre = nombre;
+            return this;
+        }
+
+        public Constructor descripcion(String descripcion) {
+            this.descripcion = descripcion;
             return this;
         }
 
@@ -117,7 +138,7 @@ public class ElementoCatalogoZona {
         }
 
         public ElementoCatalogoZona build() {
-            return new ElementoCatalogoZona(zonaManualId, nombre, idCeldaH3, resolucionH3, latitudCentroide, longitudCentroide);
+            return new ElementoCatalogoZona(zonaManualId, nombre, descripcion, idCeldaH3, resolucionH3, latitudCentroide, longitudCentroide);
         }
     }
 }

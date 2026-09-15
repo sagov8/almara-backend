@@ -1,32 +1,52 @@
 package com.almara.modules.emotion.models;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Entidad de dominio que representa un reporte de emoción ciudadana registrado en el sistema.
- * Basado en la tabla ReporteEmocion de la base de datos de Almara.
- * Garantiza Privacy by Design: almacena idCeldaH3 y jamás almacena coordenadas GPS.
+ * Entidad JPA mapeada a la tabla reporte_emocion (almara_dbdiagram.dbml).
+ * Garantiza Privacy by Design: almacena id_celda_h3 e id_emocion; nunca almacena coordenadas GPS.
  */
-public class ReporteEmocion {
+@Entity
+@Table(name = "reporte_emocion")
+public class EntidadReporteEmocion {
 
+    @Id
+    @Column(name = "id_evento", nullable = false)
     private UUID idEvento;
+
+    @Column(name = "id_celda_h3", length = 15, nullable = false)
     private String idCeldaH3;
-    private TipoEmocion emocion;
+
+    @Column(name = "id_emocion", length = 20, nullable = false)
+    private String idEmocion;
+
+    @Column(name = "intensidad")
     private Float intensidad;
+
+    @Column(name = "comentario", length = 200)
     private String comentario;
+
+    @Column(name = "token_sesion_temporal", length = 64, nullable = false)
     private String tokenSesionTemporal;
+
+    @Column(name = "fecha_hora", nullable = false)
     private Instant fechaHora;
 
-    public ReporteEmocion() {
+    public EntidadReporteEmocion() {
     }
 
-    public ReporteEmocion(UUID idEvento, String idCeldaH3, TipoEmocion emocion,
-                          Float intensidad, String comentario, String tokenSesionTemporal,
-                          Instant fechaHora) {
+    public EntidadReporteEmocion(UUID idEvento, String idCeldaH3, String idEmocion,
+                                 Float intensidad, String comentario,
+                                 String tokenSesionTemporal, Instant fechaHora) {
         this.idEvento = idEvento;
         this.idCeldaH3 = idCeldaH3;
-        this.emocion = emocion;
+        this.idEmocion = idEmocion;
         this.intensidad = intensidad;
         this.comentario = comentario;
         this.tokenSesionTemporal = tokenSesionTemporal;
@@ -53,12 +73,12 @@ public class ReporteEmocion {
         this.idCeldaH3 = idCeldaH3;
     }
 
-    public TipoEmocion getEmocion() {
-        return emocion;
+    public String getIdEmocion() {
+        return idEmocion;
     }
 
-    public void setEmocion(TipoEmocion emocion) {
-        this.emocion = emocion;
+    public void setIdEmocion(String idEmocion) {
+        this.idEmocion = idEmocion;
     }
 
     public Float getIntensidad() {
@@ -67,14 +87,6 @@ public class ReporteEmocion {
 
     public void setIntensidad(Float intensidad) {
         this.intensidad = intensidad;
-    }
-
-    public void setIntensidad(Integer nivelIntensidad) {
-        this.intensidad = nivelIntensidad != null ? nivelIntensidad.floatValue() : null;
-    }
-
-    public boolean tieneIntensidad() {
-        return intensidad != null;
     }
 
     public String getComentario() {
@@ -104,11 +116,11 @@ public class ReporteEmocion {
     public static class Constructor {
         private UUID idEvento;
         private String idCeldaH3;
-        private TipoEmocion emocion;
+        private String idEmocion;
         private Float intensidad;
         private String comentario;
         private String tokenSesionTemporal;
-        private Instant fechaHora;
+        private Instant fechaHora = Instant.now();
 
         public Constructor idEvento(UUID idEvento) {
             this.idEvento = idEvento;
@@ -120,8 +132,8 @@ public class ReporteEmocion {
             return this;
         }
 
-        public Constructor emocion(TipoEmocion emocion) {
-            this.emocion = emocion;
+        public Constructor idEmocion(String idEmocion) {
+            this.idEmocion = idEmocion;
             return this;
         }
 
@@ -145,8 +157,8 @@ public class ReporteEmocion {
             return this;
         }
 
-        public ReporteEmocion build() {
-            return new ReporteEmocion(idEvento, idCeldaH3, emocion, intensidad, comentario, tokenSesionTemporal, fechaHora);
+        public EntidadReporteEmocion build() {
+            return new EntidadReporteEmocion(idEvento, idCeldaH3, idEmocion, intensidad, comentario, tokenSesionTemporal, fechaHora);
         }
     }
 }

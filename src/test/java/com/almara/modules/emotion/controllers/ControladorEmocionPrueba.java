@@ -54,12 +54,12 @@ class ControladorEmocionPrueba {
     @DisplayName("HU-01 y HU-04: Registro exitoso con coordenadas GPS temporales convertidas a celda H3")
     void registrarEmocion_ConGps_Exitoso() throws Exception {
         String tokenPrueba = "token-anonimo-" + UUID.randomUUID();
-        // Coordenadas en Chapinero, Bogotá
+        // Coordenadas en Popayán (Parque Caldas)
         RegistroEmocionSolicitud solicitud = RegistroEmocionSolicitud.builder()
                 .emocion(TipoEmocion.FELICIDAD)
                 .tokenSesionTemporal(tokenPrueba)
-                .latitud(4.6486)
-                .longitud(-74.0645)
+                .latitud(2.4434)
+                .longitud(-76.6056)
                 .build();
 
         mockMvc.perform(post("/api/v1/emociones/seleccionar")
@@ -85,7 +85,7 @@ class ControladorEmocionPrueba {
         RegistroEmocionSolicitud solicitud = RegistroEmocionSolicitud.builder()
                 .emocion(TipoEmocion.NEUTRALIDAD)
                 .tokenSesionTemporal(tokenPrueba)
-                .zonaManualId("ZONA-CHAPINERO")
+                .zonaManualId("ZONA-PARQUE-CALDAS")
                 .build();
 
         mockMvc.perform(post("/api/v1/emociones/seleccionar")
@@ -94,7 +94,7 @@ class ControladorEmocionPrueba {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.idEvento").isNotEmpty())
                 .andExpect(jsonPath("$.idCeldaH3").isNotEmpty())
-                .andExpect(jsonPath("$.nombreZona").value("Chapinero Central"));
+                .andExpect(jsonPath("$.nombreZona").value("Parque Caldas"));
     }
 
     @Test
@@ -121,8 +121,8 @@ class ControladorEmocionPrueba {
         RegistroEmocionSolicitud solicitud = RegistroEmocionSolicitud.builder()
                 .emocion(TipoEmocion.ANSIEDAD)
                 .tokenSesionTemporal(tokenPrueba)
-                .latitud(4.6974)
-                .longitud(-74.0298)
+                .latitud(2.4459)
+                .longitud(-76.5996)
                 .build();
 
         MvcResult resultado = mockMvc.perform(post("/api/v1/emociones/seleccionar")
@@ -149,7 +149,7 @@ class ControladorEmocionPrueba {
                 {
                     "emocion": "DESCONOCIDA",
                     "tokenSesionTemporal": "token-anonimo-123456789",
-                    "zonaManualId": "ZONA-CHAPINERO"
+                    "zonaManualId": "ZONA-PARQUE-CALDAS"
                 }
                 """;
 
@@ -166,7 +166,7 @@ class ControladorEmocionPrueba {
         RegistroEmocionSolicitud solicitud = RegistroEmocionSolicitud.builder()
                 .emocion(TipoEmocion.ANSIEDAD)
                 .tokenSesionTemporal("")
-                .zonaManualId("ZONA-CHAPINERO")
+                .zonaManualId("ZONA-PARQUE-CALDAS")
                 .build();
 
         mockMvc.perform(post("/api/v1/emociones/seleccionar")
@@ -183,7 +183,7 @@ class ControladorEmocionPrueba {
         RegistroEmocionSolicitud solicitud = RegistroEmocionSolicitud.builder()
                 .emocion(TipoEmocion.ENFADO)
                 .tokenSesionTemporal(tokenPrueba)
-                .zonaManualId("ZONA-CHAPINERO")
+                .zonaManualId("ZONA-PARQUE-CALDAS")
                 .build();
 
         // Primer envío: Exitoso
@@ -208,8 +208,8 @@ class ControladorEmocionPrueba {
         RegistroEmocionSolicitud solicitud = RegistroEmocionSolicitud.builder()
                 .emocion(TipoEmocion.NEUTRALIDAD)
                 .tokenSesionTemporal(tokenPrueba)
-                .latitud(4.6534)
-                .longitud(-74.1086)
+                .latitud(2.4582)
+                .longitud(-76.5926)
                 .build();
 
         long inicio = System.currentTimeMillis();
@@ -224,11 +224,13 @@ class ControladorEmocionPrueba {
     }
 
     @Test
-    @DisplayName("HU-01: Consulta del catálogo predeterminado de emociones")
+    @DisplayName("HU-01 y HU-12: Consulta del catálogo predeterminado de emociones desde la BD")
     void obtenerCatalogo_Exitoso() throws Exception {
         mockMvc.perform(get("/api/v1/emociones/catalogo"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)))
-                .andExpect(jsonPath("$[*].etiquetaVisible", hasItems("Felicidad", "Neutralidad", "Preocupación", "Enfado", "Ansiedad")));
+                .andExpect(jsonPath("$[*].etiquetaVisible", hasItems("Felicidad", "Neutralidad", "Preocupación", "Enfado", "Ansiedad")))
+                .andExpect(jsonPath("$[0].iconoSvg", notNullValue()))
+                .andExpect(jsonPath("$[0].descripcion", notNullValue()));
     }
 }

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * Objeto de valor efímero para representar coordenadas geográficas GPS decimales.
- * Cumple con RNF Seguridad: únicamente existe en memoria durante la conversión a celda H3
+ * Únicamente existe en memoria durante la conversión a celda H3
  * y no se persiste ni se expone externamente.
  */
 public class CoordenadasGps {
@@ -47,7 +47,7 @@ public class CoordenadasGps {
 
     @Override
     public String toString() {
-        // Por privacidad (RNF Seguridad), nunca imprimimos las coordenadas exactas en toString/logs
+        // Por privacidad nunca se imprimime las coordenadas exactas en toString/logs
         return "CoordenadasGps[PROTEGIDAS_POR_PRIVACIDAD]";
     }
 }

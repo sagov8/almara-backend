@@ -110,6 +110,38 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(ExcepcionReporteNoEncontrado.class)
+    public ResponseEntity<RespuestaError> manejarReporteNoEncontrado(
+            ExcepcionReporteNoEncontrado ex,
+            HttpServletRequest peticion) {
+
+        RespuestaError error = RespuestaError.builder()
+                .marcaTemporal(Instant.now())
+                .codigoEstado(HttpStatus.NOT_FOUND.value())
+                .error("REPORTE_NO_ENCONTRADO")
+                .mensaje(ex.getMessage())
+                .ruta(peticion.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ExcepcionIntensidadYaRegistrada.class)
+    public ResponseEntity<RespuestaError> manejarIntensidadYaRegistrada(
+            ExcepcionIntensidadYaRegistrada ex,
+            HttpServletRequest peticion) {
+
+        RespuestaError error = RespuestaError.builder()
+                .marcaTemporal(Instant.now())
+                .codigoEstado(HttpStatus.CONFLICT.value())
+                .error("INTENSIDAD_YA_REGISTRADA")
+                .mensaje(ex.getMessage())
+                .ruta(peticion.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespuestaError> manejarExcepcionGeneral(
             Exception ex,

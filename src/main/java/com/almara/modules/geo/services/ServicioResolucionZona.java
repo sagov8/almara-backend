@@ -61,6 +61,7 @@ public class ServicioResolucionZona {
                 .map(z -> ElementoCatalogoZona.builder()
                         .zonaManualId(z.getZonaManualId())
                         .nombre(z.getNombreZonaManual())
+                        .descripcion(z.getDescripcion())
                         .idCeldaH3(z.getIdCeldaH3())
                         .resolucionH3(z.getResolucionH3())
                         .latitudCentroide(z.getLatitudCentroide())

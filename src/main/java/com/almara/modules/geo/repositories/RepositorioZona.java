@@ -16,7 +16,7 @@ public interface RepositorioZona {
     Optional<Zona> buscarPorIdCeldaH3(String idCeldaH3);
 
     /**
-     * Busca una zona por su identificador del catálogo manual (ej: ZONA-CHAPINERO).
+     * Busca una zona por su identificador del catálogo manual (ej: ZONA-PARQUE-CALDAS).
      */
     Optional<Zona> buscarPorZonaManualId(String zonaManualId);
 

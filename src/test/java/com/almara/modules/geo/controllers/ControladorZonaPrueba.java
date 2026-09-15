@@ -32,8 +32,8 @@ class ControladorZonaPrueba {
     void obtenerZonasManuales_Exitoso() throws Exception {
         mockMvc.perform(get("/api/v1/geo/zonas-manuales"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(5))))
-                .andExpect(jsonPath("$[*].nombre", hasItems("Chapinero Central", "Usaquén", "Teusaquillo / Parkway")))
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(15))))
+                .andExpect(jsonPath("$[*].nombre", hasItems("Parque Caldas", "Puente del Humilladero", "Centro Comercial Campanario")))
                 .andExpect(jsonPath("$[*].idCeldaH3", everyItem(hasLength(15))))
                 .andExpect(jsonPath("$[*].resolucionH3", everyItem(is(9))));
     }
@@ -42,7 +42,7 @@ class ControladorZonaPrueba {
     @DisplayName("HU-04: Resolución de celda H3 por coordenadas GPS temporales")
     void resolverCelda_ConGps_Exitoso() throws Exception {
         ResolucionZonaSolicitud solicitud = ResolucionZonaSolicitud.builder()
-                .coordenadasGps(new CoordenadasGps(4.6486, -74.0645))
+                .coordenadasGps(new CoordenadasGps(2.4419, -76.6063))
                 .build();
 
         mockMvc.perform(post("/api/v1/geo/resolver-celda")
@@ -64,7 +64,7 @@ class ControladorZonaPrueba {
     @DisplayName("HU-04: Resolución de celda H3 por catálogo manual")
     void resolverCelda_ConZonaManual_Exitoso() throws Exception {
         ResolucionZonaSolicitud solicitud = ResolucionZonaSolicitud.builder()
-                .zonaManualId("ZONA-USAQUEN")
+                .zonaManualId("ZONA-CAMPANARIO")
                 .build();
 
         mockMvc.perform(post("/api/v1/geo/resolver-celda")
@@ -72,8 +72,8 @@ class ControladorZonaPrueba {
                         .content(mapeadorObjetos.writeValueAsString(solicitud)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idCeldaH3").isNotEmpty())
-                .andExpect(jsonPath("$.nombreZona").value("Usaquén"))
-                .andExpect(jsonPath("$.zonaManualId").value("ZONA-USAQUEN"))
+                .andExpect(jsonPath("$.nombreZona").value("Centro Comercial Campanario"))
+                .andExpect(jsonPath("$.zonaManualId").value("ZONA-CAMPANARIO"))
                 .andExpect(jsonPath("$.esManual").value(true));
     }
 

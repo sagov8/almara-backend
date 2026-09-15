@@ -9,15 +9,23 @@ public class ElementoCatalogoEmocion {
     private String etiquetaVisible;
     private String codigoHexColor;
     private String codigoHexFondo;
+    private String iconoSvg;
+    private String descripcion;
 
     public ElementoCatalogoEmocion() {
     }
 
-    public ElementoCatalogoEmocion(TipoEmocion id, String etiquetaVisible, String codigoHexColor, String codigoHexFondo) {
+    public ElementoCatalogoEmocion(TipoEmocion id, String etiquetaVisible, String codigoHexColor, String codigoHexFondo, String iconoSvg, String descripcion) {
         this.id = id;
         this.etiquetaVisible = etiquetaVisible;
         this.codigoHexColor = codigoHexColor;
         this.codigoHexFondo = codigoHexFondo;
+        this.iconoSvg = iconoSvg;
+        this.descripcion = descripcion;
+    }
+
+    public ElementoCatalogoEmocion(TipoEmocion id, String etiquetaVisible, String codigoHexColor, String codigoHexFondo) {
+        this(id, etiquetaVisible, codigoHexColor, codigoHexFondo, null, null);
     }
 
     public static Constructor builder() {
@@ -56,11 +64,29 @@ public class ElementoCatalogoEmocion {
         this.codigoHexFondo = codigoHexFondo;
     }
 
+    public String getIconoSvg() {
+        return iconoSvg;
+    }
+
+    public void setIconoSvg(String iconoSvg) {
+        this.iconoSvg = iconoSvg;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
     public static class Constructor {
         private TipoEmocion id;
         private String etiquetaVisible;
         private String codigoHexColor;
         private String codigoHexFondo;
+        private String iconoSvg;
+        private String descripcion;
 
         public Constructor id(TipoEmocion id) {
             this.id = id;
@@ -82,8 +108,18 @@ public class ElementoCatalogoEmocion {
             return this;
         }
 
+        public Constructor iconoSvg(String iconoSvg) {
+            this.iconoSvg = iconoSvg;
+            return this;
+        }
+
+        public Constructor descripcion(String descripcion) {
+            this.descripcion = descripcion;
+            return this;
+        }
+
         public ElementoCatalogoEmocion build() {
-            return new ElementoCatalogoEmocion(id, etiquetaVisible, codigoHexColor, codigoHexFondo);
+            return new ElementoCatalogoEmocion(id, etiquetaVisible, codigoHexColor, codigoHexFondo, iconoSvg, descripcion);
         }
     }
 }

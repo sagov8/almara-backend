@@ -43,8 +43,8 @@ class EstrategiaResolucionZonaPrueba {
     @Test
     @DisplayName("Adapter Pattern: AdaptadorH3Core genera celdas válidas a resolución 9")
     void adaptadorH3_GeneraCeldaValida() {
-        double lat = 4.6486;
-        double lon = -74.0645;
+        double lat = 2.4419;
+        double lon = -76.6063;
         int resolucion = 9;
 
         String idCelda = adaptadorH3.coordenadasACelda(lat, lon, resolucion);
@@ -65,7 +65,7 @@ class EstrategiaResolucionZonaPrueba {
     @DisplayName("Strategy Pattern: GpsToH3ResolutionStrategy convierte coordenadas temporales a celda H3")
     void estrategiaGps_ResuelveCorrectamente() {
         ResolucionZonaContexto contexto = ResolucionZonaContexto.builder()
-                .coordenadasGps(new CoordenadasGps(4.6097, -74.0817))
+                .coordenadasGps(new CoordenadasGps(2.4434, -76.6056))
                 .resolucionDeseada(9)
                 .build();
 
@@ -87,7 +87,7 @@ class EstrategiaResolucionZonaPrueba {
     @DisplayName("Strategy Pattern: ManualCatalogResolutionStrategy resuelve desde el catálogo predefinido")
     void estrategiaManual_ResuelveCorrectamente() {
         ResolucionZonaContexto contexto = ResolucionZonaContexto.builder()
-                .zonaManualId("ZONA-CHAPINERO")
+                .zonaManualId("ZONA-PARQUE-CALDAS")
                 .resolucionDeseada(9)
                 .build();
 
@@ -98,8 +98,8 @@ class EstrategiaResolucionZonaPrueba {
 
         assertNotNull(resultado);
         assertNotNull(resultado.getIdCeldaH3());
-        assertEquals("Chapinero Central", resultado.getNombreZona());
-        assertEquals("ZONA-CHAPINERO", resultado.getZonaManualId());
+        assertEquals("Parque Caldas", resultado.getNombreZona());
+        assertEquals("ZONA-PARQUE-CALDAS", resultado.getZonaManualId());
         assertTrue(resultado.isEsManual());
     }
 
@@ -126,7 +126,7 @@ class EstrategiaResolucionZonaPrueba {
     @Test
     @DisplayName("RNF Rendimiento: La conversión a celda H3 se ejecuta en menos de 1000 ms (< 5 ms)")
     void rendimiento_ConversionH3_InferiorA1000ms() {
-        CoordenadasGps coords = new CoordenadasGps(4.6486, -74.0645);
+        CoordenadasGps coords = new CoordenadasGps(2.4419, -76.6063);
 
         long inicio = System.nanoTime();
         ResultadoResolucionZona resultado = servicioResolucionZona.resolverZona(coords, null);
