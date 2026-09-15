@@ -27,11 +27,17 @@ public class ControladorMapa {
 
     private final ServicioAgregacionMapa servicioAgregacionMapa;
     private final ServicioDetalleZona servicioDetalleZona;
+    private final com.almara.modules.aggregation.websocket.PublicadorSincronizacionMapa publicadorSincronizacionMapa;
+    private final com.almara.modules.emotion.repositories.RepositorioReporteEmocion repositorioReporteEmocion;
 
     public ControladorMapa(ServicioAgregacionMapa servicioAgregacionMapa,
-                           ServicioDetalleZona servicioDetalleZona) {
+                           ServicioDetalleZona servicioDetalleZona,
+                           com.almara.modules.aggregation.websocket.PublicadorSincronizacionMapa publicadorSincronizacionMapa,
+                           com.almara.modules.emotion.repositories.RepositorioReporteEmocion repositorioReporteEmocion) {
         this.servicioAgregacionMapa = servicioAgregacionMapa;
         this.servicioDetalleZona = servicioDetalleZona;
+        this.publicadorSincronizacionMapa = publicadorSincronizacionMapa;
+        this.repositorioReporteEmocion = repositorioReporteEmocion;
     }
 
     /**
@@ -115,5 +121,36 @@ public class ControladorMapa {
         DetalleZonaEmocionRespuesta detalle = servicioDetalleZona.consultarDetalleZona(idCeldaH3, periodoTemporal);
 
         return ResponseEntity.ok(detalle);
+    }
+
+    /**
+     * Endpoint de simulación y testing para emitir una actualización en tiempo real por WebSocket (HU-07).
+     */
+    @PostMapping("/simular-actualizacion")
+    public ResponseEntity<CeldaMapaEmocional> simularActualizacion(
+            @RequestBody(required = false) java.util.Map<String, Object> body) {
+        String idCelda = body != null && body.containsKey("idCeldaH3") ? (String) body.get("idCeldaH3") : "8966c6c748fffff";
+        String emocionStr = body != null && body.containsKey("emocion") ? (String) body.get("emocion") : "FELICIDAD";
+        com.almara.modules.emotion.models.TipoEmocion em = com.almara.modules.emotion.models.TipoEmocion.valueOf(emocionStr.toUpperCase());
+
+        com.almara.modules.emotion.models.ReporteEmocion r = com.almara.modules.emotion.models.ReporteEmocion.builder()
+                .idEvento(java.util.UUID.randomUUID())
+                .idCeldaH3(idCelda)
+                .emocion(em)
+                .intensidad(4.0f)
+                .fechaHora(java.time.Instant.now())
+                .tokenSesionTemporal("simulacion-" + java.util.UUID.randomUUID())
+                .build();
+        repositorioReporteEmocion.guardar(r);
+
+        java.util.Optional<CeldaMapaEmocional> celdaOpt = servicioAgregacionMapa.recalcularCelda(idCelda, 14, 5);
+        if (celdaOpt.isPresent()) {
+            publicadorSincronizacionMapa.publicarActualizacion(
+                    com.almara.modules.aggregation.websocket.PublicadorSincronizacionMapa.CANAL_POPAYAN_DEFAULT,
+                    celdaOpt.get()
+            );
+            return ResponseEntity.ok(celdaOpt.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 }

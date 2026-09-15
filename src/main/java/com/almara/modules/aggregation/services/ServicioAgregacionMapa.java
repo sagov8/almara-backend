@@ -118,6 +118,33 @@ public class ServicioAgregacionMapa {
     }
 
     /**
+     * Recalcula el estado agregado de una celda específica (HU-07) para sincronización en tiempo real.
+     */
+    public Optional<CeldaMapaEmocional> recalcularCelda(String idCeldaH3, int nivelZoom, int umbralK) {
+        if (idCeldaH3 == null || !adaptadorH3.esCeldaValida(idCeldaH3)) {
+            return Optional.empty();
+        }
+
+        ContextoZoomMapa contexto = ContextoZoomMapa.builder()
+                .nivelZoom(nivelZoom)
+                .umbralMinimoK(umbralK)
+                .build();
+
+        List<CeldaMapaEmocional> celdas = obtenerTodasLasCeldas(contexto);
+        int res = seleccionarEstrategia(nivelZoom).getResolucionH3();
+
+        String celdaResolucionActual = idCeldaH3;
+        if (adaptadorH3.obtenerResolucion(idCeldaH3) != res) {
+            celdaResolucionActual = adaptadorH3.obtenerCeldaPadre(idCeldaH3, res);
+        }
+
+        final String celdaBuscada = celdaResolucionActual;
+        return celdas.stream()
+                .filter(c -> c.getIdCeldaH3().equalsIgnoreCase(celdaBuscada))
+                .findFirst();
+    }
+
+    /**
      * Selecciona la estrategia adecuada según el nivel de zoom especificado.
      */
     public EstrategiaResolucionEspacial seleccionarEstrategia(int nivelZoom) {

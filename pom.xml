@@ -40,6 +40,12 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Spring Boot Starter WebSocket - Sincronización en Tiempo Real (HU-07) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- Uber H3 Core - Indexación Geoespacial Hexagonal (HU-04) -->
         <dependency>
             <groupId>com.uber</groupId>
