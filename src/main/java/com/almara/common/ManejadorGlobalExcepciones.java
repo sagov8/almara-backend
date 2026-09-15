@@ -142,6 +142,22 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(ExcepcionComentarioInvalido.class)
+    public ResponseEntity<RespuestaError> manejarComentarioInvalido(
+            ExcepcionComentarioInvalido ex,
+            HttpServletRequest peticion) {
+
+        RespuestaError error = RespuestaError.builder()
+                .marcaTemporal(Instant.now())
+                .codigoEstado(HttpStatus.BAD_REQUEST.value())
+                .error(ex.getCodigoError() != null ? ex.getCodigoError() : "COMENTARIO_INVALIDO")
+                .mensaje(ex.getMessage())
+                .ruta(peticion.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespuestaError> manejarExcepcionGeneral(
             Exception ex,

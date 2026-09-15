@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import java.util.List;
+
 /**
  * Implementación concreta del patrón Adapter que envuelve la librería nativa Uber H3 Core.
  * Aísla al resto del sistema de cualquier detalle técnico específico de la implementación C/JNI de H3.
@@ -60,5 +62,28 @@ public class AdaptadorH3Core implements AdaptadorH3 {
     @Override
     public int obtenerResolucion(String idCeldaH3) {
         return h3Core.getResolution(idCeldaH3);
+    }
+
+    @Override
+    public String obtenerCeldaPadre(String idCeldaH3, int resolucionPadre) {
+        if (!esCeldaValida(idCeldaH3)) {
+            return idCeldaH3;
+        }
+        int resActual = obtenerResolucion(idCeldaH3);
+        if (resolucionPadre >= resActual) {
+            return idCeldaH3;
+        }
+        return h3Core.cellToParentAddress(idCeldaH3, resolucionPadre);
+    }
+
+    @Override
+    public List<CoordenadasGps> obtenerLimitesHexagono(String idCeldaH3) {
+        if (!esCeldaValida(idCeldaH3)) {
+            return List.of();
+        }
+        List<LatLng> vertices = h3Core.cellToBoundary(idCeldaH3);
+        return vertices.stream()
+                .map(v -> new CoordenadasGps(v.lat, v.lng))
+                .toList();
     }
 }

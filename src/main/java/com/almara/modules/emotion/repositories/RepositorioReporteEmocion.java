@@ -32,6 +32,11 @@ public interface RepositorioReporteEmocion {
     long contarTotal();
 
     /**
+     * Retorna todos los reportes de emoción registrados en el sistema.
+     */
+    List<ReporteEmocion> obtenerTodos();
+
+    /**
      * Limpia los reportes almacenados (de utilidad para pruebas automatizadas).
      */
     void limpiar();

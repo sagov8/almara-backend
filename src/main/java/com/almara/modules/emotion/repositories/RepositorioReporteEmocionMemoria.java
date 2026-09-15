@@ -52,6 +52,11 @@ public class RepositorioReporteEmocionMemoria implements RepositorioReporteEmoci
     }
 
     @Override
+    public List<ReporteEmocion> obtenerTodos() {
+        return new ArrayList<>(reportesPorId.values());
+    }
+
+    @Override
     public void limpiar() {
         reportesPorId.clear();
     }

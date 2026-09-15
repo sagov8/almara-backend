@@ -21,8 +21,12 @@ import java.util.UUID;
 import com.almara.modules.emotion.models.EntidadCatalogoEmocion;
 import com.almara.modules.emotion.repositories.RepositorioCatalogoEmocion;
 
+import com.almara.modules.emotion.models.RegistroComentarioRespuesta;
+import com.almara.modules.emotion.models.RegistroComentarioSolicitud;
+import com.almara.modules.emotion.services.ServicioRegistroComentario;
+
 /**
- * Controlador REST para la selección y registro de emociones ciudadanas (HU-01, HU-02 y HU-04).
+ * Controlador REST para la selección y registro de emociones ciudadanas (HU-01, HU-02, HU-03 y HU-04).
  */
 @RestController
 @RequestMapping("/api/v1/emociones")
@@ -31,14 +35,17 @@ public class ControladorEmocion {
 
     private final ServicioRegistroEmocion servicioRegistroEmocion;
     private final ServicioRegistroIntensidad servicioRegistroIntensidad;
+    private final ServicioRegistroComentario servicioRegistroComentario;
     private final RepositorioCatalogoEmocion repositorioCatalogoEmocion;
 
     public ControladorEmocion(
             ServicioRegistroEmocion servicioRegistroEmocion,
             ServicioRegistroIntensidad servicioRegistroIntensidad,
+            ServicioRegistroComentario servicioRegistroComentario,
             RepositorioCatalogoEmocion repositorioCatalogoEmocion) {
         this.servicioRegistroEmocion = servicioRegistroEmocion;
         this.servicioRegistroIntensidad = servicioRegistroIntensidad;
+        this.servicioRegistroComentario = servicioRegistroComentario;
         this.repositorioCatalogoEmocion = repositorioCatalogoEmocion;
     }
 
@@ -76,6 +83,31 @@ public class ControladorEmocion {
 
         solicitud.setIdEvento(idEvento);
         RegistroIntensidadRespuesta respuesta = servicioRegistroIntensidad.registrarIntensidad(solicitud);
+        return ResponseEntity.ok(respuesta);
+    }
+
+    /**
+     * Endpoint para ingresar un comentario complementario y opcional a la emoción (HU-03).
+     * Tiempo de respuesta garantizado < 300 ms bajo condiciones normales (RNF Desempeño).
+     */
+    @PostMapping("/comentario")
+    public ResponseEntity<RegistroComentarioRespuesta> registrarComentario(
+            @Valid @RequestBody RegistroComentarioSolicitud solicitud) {
+
+        RegistroComentarioRespuesta respuesta = servicioRegistroComentario.registrarComentario(solicitud);
+        return ResponseEntity.ok(respuesta);
+    }
+
+    /**
+     * Endpoint semántico REST alternativo para registrar comentario complementario por ID de ruta (HU-03).
+     */
+    @PatchMapping("/{idEvento}/comentario")
+    public ResponseEntity<RegistroComentarioRespuesta> registrarComentarioPorRuta(
+            @PathVariable UUID idEvento,
+            @Valid @RequestBody RegistroComentarioSolicitud solicitud) {
+
+        solicitud.setIdEvento(idEvento);
+        RegistroComentarioRespuesta respuesta = servicioRegistroComentario.registrarComentario(solicitud);
         return ResponseEntity.ok(respuesta);
     }
 

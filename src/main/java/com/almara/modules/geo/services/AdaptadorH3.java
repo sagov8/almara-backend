@@ -1,6 +1,7 @@
 package com.almara.modules.geo.services;
 
 import com.almara.modules.geo.models.CoordenadasGps;
+import java.util.List;
 
 /**
  * Puerto del patrón Adapter para desacoplar el motor espacial H3 Core
@@ -28,4 +29,14 @@ public interface AdaptadorH3 {
      * Obtiene la resolución espacial de una celda H3 dada.
      */
     int obtenerResolucion(String idCeldaH3);
+
+    /**
+     * Obtiene la celda padre de menor resolución espacial (Strategy Pattern para zoom del mapa, HU-05).
+     */
+    String obtenerCeldaPadre(String idCeldaH3, int resolucionPadre);
+
+    /**
+     * Obtiene los vértices geográficos del polígono hexagonal de la celda para su dibujo en el mapa interactivo (HU-05).
+     */
+    List<CoordenadasGps> obtenerLimitesHexagono(String idCeldaH3);
 }
