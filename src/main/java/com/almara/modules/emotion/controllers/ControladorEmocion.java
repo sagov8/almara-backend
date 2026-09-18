@@ -3,14 +3,12 @@ package com.almara.modules.emotion.controllers;
 import com.almara.modules.emotion.models.ElementoCatalogoEmocion;
 import com.almara.modules.emotion.models.RegistroEmocionRespuesta;
 import com.almara.modules.emotion.models.RegistroEmocionSolicitud;
-import com.almara.modules.emotion.models.TipoEmocion;
 import com.almara.modules.emotion.services.ServicioRegistroEmocion;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.almara.modules.emotion.models.RegistroIntensidadRespuesta;
@@ -18,15 +16,13 @@ import com.almara.modules.emotion.models.RegistroIntensidadSolicitud;
 import com.almara.modules.emotion.services.ServicioRegistroIntensidad;
 import java.util.UUID;
 
-import com.almara.modules.emotion.models.EntidadCatalogoEmocion;
-import com.almara.modules.emotion.repositories.RepositorioCatalogoEmocion;
-
 import com.almara.modules.emotion.models.RegistroComentarioRespuesta;
 import com.almara.modules.emotion.models.RegistroComentarioSolicitud;
+import com.almara.modules.emotion.services.ServicioCatalogoEmocion;
 import com.almara.modules.emotion.services.ServicioRegistroComentario;
 
 /**
- * Controlador REST para la selección y registro de emociones ciudadanas (HU-01, HU-02, HU-03 y HU-04).
+ * Controlador REST para la selección y registro de emociones ciudadanas (HU-01, HU-02, HU-03, HU-04 y HU-12).
  */
 @RestController
 @RequestMapping("/api/v1/emociones")
@@ -36,17 +32,17 @@ public class ControladorEmocion {
     private final ServicioRegistroEmocion servicioRegistroEmocion;
     private final ServicioRegistroIntensidad servicioRegistroIntensidad;
     private final ServicioRegistroComentario servicioRegistroComentario;
-    private final RepositorioCatalogoEmocion repositorioCatalogoEmocion;
+    private final ServicioCatalogoEmocion servicioCatalogoEmocion;
 
     public ControladorEmocion(
             ServicioRegistroEmocion servicioRegistroEmocion,
             ServicioRegistroIntensidad servicioRegistroIntensidad,
             ServicioRegistroComentario servicioRegistroComentario,
-            RepositorioCatalogoEmocion repositorioCatalogoEmocion) {
+            ServicioCatalogoEmocion servicioCatalogoEmocion) {
         this.servicioRegistroEmocion = servicioRegistroEmocion;
         this.servicioRegistroIntensidad = servicioRegistroIntensidad;
         this.servicioRegistroComentario = servicioRegistroComentario;
-        this.repositorioCatalogoEmocion = repositorioCatalogoEmocion;
+        this.servicioCatalogoEmocion = servicioCatalogoEmocion;
     }
 
     /**
@@ -116,43 +112,6 @@ public class ControladorEmocion {
      */
     @GetMapping("/catalogo")
     public ResponseEntity<List<ElementoCatalogoEmocion>> obtenerCatalogo() {
-        List<EntidadCatalogoEmocion> emocionesDb = repositorioCatalogoEmocion.findByActivoTrue();
-        if (emocionesDb != null && !emocionesDb.isEmpty()) {
-            List<ElementoCatalogoEmocion> catalogo = emocionesDb.stream()
-                    .map(e -> ElementoCatalogoEmocion.builder()
-                            .id(TipoEmocion.valueOf(e.getIdEmocion()))
-                            .etiquetaVisible(e.getNombreEtiqueta())
-                            .codigoHexColor(e.getCodigoHexColor())
-                            .codigoHexFondo(e.getCodigoHexFondo())
-                            .iconoSvg(e.getIconoSvg())
-                            .descripcion(e.getDescripcion())
-                            .build())
-                    .toList();
-            return ResponseEntity.ok(catalogo);
-        }
-
-        // Fallback al enum en caso de catálogo no sembrado
-        List<ElementoCatalogoEmocion> catalogoFallback = Arrays.stream(TipoEmocion.values())
-                .map(e -> ElementoCatalogoEmocion.builder()
-                        .id(e)
-                        .etiquetaVisible(e.getEtiquetaVisible())
-                        .codigoHexColor(e.getCodigoHexColor())
-                        .codigoHexFondo(e.getCodigoHexFondo())
-                        .iconoSvg(obtenerIconoFallback(e))
-                        .descripcion(e.getEtiquetaVisible())
-                        .build())
-                .toList();
-
-        return ResponseEntity.ok(catalogoFallback);
-    }
-
-    private String obtenerIconoFallback(TipoEmocion e) {
-        return switch (e) {
-            case FELICIDAD -> "😊";
-            case NEUTRALIDAD -> "😐";
-            case PREOCUPACION -> "😟";
-            case ENFADO -> "😠";
-            case ANSIEDAD -> "😰";
-        };
+        return ResponseEntity.ok(servicioCatalogoEmocion.obtenerCatalogo());
     }
 }
