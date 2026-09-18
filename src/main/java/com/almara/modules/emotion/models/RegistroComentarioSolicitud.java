@@ -1,6 +1,5 @@
 package com.almara.modules.emotion.models;
 
-import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 /**

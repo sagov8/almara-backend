@@ -5,6 +5,8 @@ import com.almara.modules.aggregation.models.ConsultaMapaEmocionalRespuesta;
 import com.almara.modules.aggregation.models.ContextoZoomMapa;
 import com.almara.modules.aggregation.services.strategies.EstrategiaResolucionEspacial;
 import com.almara.modules.aggregation.services.strategies.EstrategiaZoomDetalle;
+import com.almara.modules.aggregation.models.EntidadEstadoEmocionalZona;
+import com.almara.modules.aggregation.repositories.RepositorioEstadoEmocionalZonaJpa;
 import com.almara.modules.emotion.models.ReporteEmocion;
 import com.almara.modules.emotion.models.TipoEmocion;
 import com.almara.modules.emotion.repositories.RepositorioReporteEmocion;
@@ -14,6 +16,7 @@ import com.almara.modules.geo.services.AdaptadorH3;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -39,15 +42,26 @@ public class ServicioAgregacionMapa {
     private final AdaptadorH3 adaptadorH3;
     private final RepositorioReporteEmocion repositorioReporteEmocion;
     private final RepositorioZona repositorioZona;
+    private final RepositorioEstadoEmocionalZonaJpa repositorioEstadoEmocionalZonaJpa;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ServicioAgregacionMapa(List<EstrategiaResolucionEspacial> estrategias,
+                                  AdaptadorH3 adaptadorH3,
+                                  RepositorioReporteEmocion repositorioReporteEmocion,
+                                  RepositorioZona repositorioZona,
+                                  ObjectProvider<RepositorioEstadoEmocionalZonaJpa> estadoJpaProvider) {
+        this.estrategias = estrategias;
+        this.adaptadorH3 = adaptadorH3;
+        this.repositorioReporteEmocion = repositorioReporteEmocion;
+        this.repositorioZona = repositorioZona;
+        this.repositorioEstadoEmocionalZonaJpa = estadoJpaProvider != null ? estadoJpaProvider.getIfAvailable() : null;
+    }
 
     public ServicioAgregacionMapa(List<EstrategiaResolucionEspacial> estrategias,
                                   AdaptadorH3 adaptadorH3,
                                   RepositorioReporteEmocion repositorioReporteEmocion,
                                   RepositorioZona repositorioZona) {
-        this.estrategias = estrategias;
-        this.adaptadorH3 = adaptadorH3;
-        this.repositorioReporteEmocion = repositorioReporteEmocion;
-        this.repositorioZona = repositorioZona;
+        this(estrategias, adaptadorH3, repositorioReporteEmocion, repositorioZona, null);
     }
 
     @PostConstruct
@@ -56,6 +70,7 @@ public class ServicioAgregacionMapa {
             log.info("Sembrando reportes colectivos iniciales para Popayán (HU-05)...");
             sembrarReportesIniciales();
         }
+        sincronizarEstadosZonasEnBaseDeDatos();
     }
 
     /**
@@ -220,6 +235,61 @@ public class ServicioAgregacionMapa {
                         .build();
                 repositorioReporteEmocion.guardar(r);
             }
+        }
+    }
+
+    /**
+     * Persiste o actualiza el snapshot del estado emocional agregado de una celda en PostgreSQL.
+     */
+    public void persistirEstadoCelda(CeldaMapaEmocional celda) {
+        if (repositorioEstadoEmocionalZonaJpa == null || celda == null || celda.getIdCeldaH3() == null) {
+            return;
+        }
+
+        try {
+            String emocion = celda.isCumpleUmbral() && celda.getEmocionPredominante() != null
+                    ? celda.getEmocionPredominante().name()
+                    : null;
+
+            EntidadEstadoEmocionalZona entidad = EntidadEstadoEmocionalZona.builder()
+                    .idCeldaH3(celda.getIdCeldaH3())
+                    .emocionPredominante(emocion)
+                    .codigoHexColor(celda.getCodigoHexColor())
+                    .iconoSvg(celda.getIcono())
+                    .distribucionPorcentual(celda.isCumpleUmbral() ? "{\"predominante\":\"" + celda.getNombreEmocion() + "\"}" : "{}")
+                    .tendencia(celda.isCumpleUmbral() ? "Estable" : "Reservada")
+                    .participantesAproximados(celda.getTotalReportes() >= 5
+                            ? "Al menos " + celda.getTotalReportes() + " personas"
+                            : "Menos de 5 personas")
+                    .totalEventosPeriodo(celda.getTotalReportes())
+                    .periodoTemporalMetrica("Últimas 24 horas")
+                    .cumpleUmbral(celda.isCumpleUmbral())
+                    .ultimaActualizacion(Instant.now())
+                    .build();
+
+            repositorioEstadoEmocionalZonaJpa.save(entidad);
+        } catch (Exception ex) {
+            log.warn("No fue posible persistir estado de zona en PostgreSQL [{}]: {}", celda.getIdCeldaH3(), ex.getMessage());
+        }
+    }
+
+    /**
+     * Sincroniza todas las celdas calculadas hacia la tabla estado_emocional_zona en PostgreSQL.
+     */
+    public void sincronizarEstadosZonasEnBaseDeDatos() {
+        if (repositorioEstadoEmocionalZonaJpa == null) {
+            return;
+        }
+
+        try {
+            ContextoZoomMapa contexto = ContextoZoomMapa.builder().nivelZoom(14).umbralMinimoK(5).build();
+            List<CeldaMapaEmocional> todas = obtenerTodasLasCeldas(contexto);
+            for (CeldaMapaEmocional c : todas) {
+                persistirEstadoCelda(c);
+            }
+            log.info("Sincronizadas {} celdas de estado emocional en la tabla estado_emocional_zona.", todas.size());
+        } catch (Exception ex) {
+            log.warn("Error al sincronizar estados emocionales de zona en PostgreSQL: {}", ex.getMessage());
         }
     }
 }
