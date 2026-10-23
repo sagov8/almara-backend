@@ -73,6 +73,14 @@ public class ClienteInstitucional extends Usuario {
         return this.activo && this.correoVerificado && EstadoCuentaInstitucional.ACTIVA.name().equalsIgnoreCase(this.estadoCuenta);
     }
 
+    @Override
+    public void cerrarSesion(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("El token de sesión no puede ser nulo o vacío al cerrar sesión");
+        }
+        super.cerrarSesion(token);
+    }
+
     public void registrarEntidad() {
         this.estadoCuenta = EstadoCuentaInstitucional.PENDIENTE_APROBACION.name();
         this.correoVerificado = false;

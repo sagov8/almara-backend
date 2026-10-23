@@ -1,9 +1,14 @@
 package com.almara.modules.institutional.controllers;
 
+import com.almara.modules.institutional.dto.LoginInstitucionalRespuesta;
+import com.almara.modules.institutional.dto.LoginInstitucionalSolicitud;
+import com.almara.modules.institutional.dto.LogoutInstitucionalRespuesta;
 import com.almara.modules.institutional.dto.RegistroInstitucionalRespuesta;
 import com.almara.modules.institutional.dto.RegistroInstitucionalSolicitud;
+import com.almara.modules.institutional.dto.SesionActualRespuesta;
 import com.almara.modules.institutional.dto.VerificacionCorreoRespuesta;
 import com.almara.modules.institutional.dto.VerificacionCorreoSolicitud;
+import com.almara.modules.institutional.services.ServicioAutenticacionInstitucional;
 import com.almara.modules.institutional.services.ServicioRegistroInstitucional;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -11,13 +16,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controlador REST para el flujo de Autenticación y Registro Institucional (HU-16).
+ * Controlador REST para el flujo de Autenticación y Registro Institucional (HU-16, HU-17).
  */
 @RestController
 @RequestMapping("/api/v1/institutional/auth")
@@ -27,9 +34,13 @@ public class ControladorAutenticacionInstitucional {
     private static final Logger log = LoggerFactory.getLogger(ControladorAutenticacionInstitucional.class);
 
     private final ServicioRegistroInstitucional servicioRegistroInstitucional;
+    private final ServicioAutenticacionInstitucional servicioAutenticacionInstitucional;
 
-    public ControladorAutenticacionInstitucional(ServicioRegistroInstitucional servicioRegistroInstitucional) {
+    public ControladorAutenticacionInstitucional(
+            ServicioRegistroInstitucional servicioRegistroInstitucional,
+            ServicioAutenticacionInstitucional servicioAutenticacionInstitucional) {
         this.servicioRegistroInstitucional = servicioRegistroInstitucional;
+        this.servicioAutenticacionInstitucional = servicioAutenticacionInstitucional;
     }
 
     /**
@@ -54,6 +65,42 @@ public class ControladorAutenticacionInstitucional {
         log.info("POST /api/v1/institutional/auth/verificar-correo -> token=[{}]", solicitud.getTokenVerificacion());
 
         VerificacionCorreoRespuesta respuesta = servicioRegistroInstitucional.verificarCorreoYActivarCuenta(solicitud);
+        return ResponseEntity.ok(respuesta);
+    }
+
+    /**
+     * Inicia sesión como cliente institucional y emite token JWT con claims de suscripción (HU-17).
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginInstitucionalRespuesta> iniciarSesion(
+            @Valid @RequestBody LoginInstitucionalSolicitud solicitud) {
+        log.info("POST /api/v1/institutional/auth/login -> correo='{}'", solicitud.getCorreoInstitucional());
+
+        LoginInstitucionalRespuesta respuesta = servicioAutenticacionInstitucional.iniciarSesion(solicitud);
+        return ResponseEntity.ok(respuesta);
+    }
+
+    /**
+     * Cierra la sesión activa del cliente institucional y revoca el token JWT (HU-18).
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<LogoutInstitucionalRespuesta> cerrarSesion(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        log.info("POST /api/v1/institutional/auth/logout");
+
+        LogoutInstitucionalRespuesta respuesta = servicioAutenticacionInstitucional.cerrarSesion(authorization);
+        return ResponseEntity.ok(respuesta);
+    }
+
+    /**
+     * Consulta el estado de la sesión activa institucional validando que no esté revocada ni caducada (HU-18).
+     */
+    @GetMapping("/sesion-actual")
+    public ResponseEntity<SesionActualRespuesta> obtenerSesionActual(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        log.info("GET /api/v1/institutional/auth/sesion-actual");
+
+        SesionActualRespuesta respuesta = servicioAutenticacionInstitucional.obtenerSesionActual(authorization);
         return ResponseEntity.ok(respuesta);
     }
 }
