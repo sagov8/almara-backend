@@ -158,6 +158,22 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(ExcepcionReglaNegocioInstitucional.class)
+    public ResponseEntity<RespuestaError> manejarReglaNegocioInstitucional(
+            ExcepcionReglaNegocioInstitucional ex,
+            HttpServletRequest peticion) {
+
+        RespuestaError error = RespuestaError.builder()
+                .marcaTemporal(Instant.now())
+                .codigoEstado(ex.getEstado().value())
+                .error(ex.getCodigoError() != null ? ex.getCodigoError() : "REGLA_NEGOCIO_INSTITUCIONAL")
+                .mensaje(ex.getMessage())
+                .ruta(peticion.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(ex.getEstado()).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespuestaError> manejarExcepcionGeneral(
             Exception ex,
