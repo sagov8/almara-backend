@@ -169,6 +169,7 @@ public class ManejadorGlobalExcepciones {
                 .error(ex.getCodigoError() != null ? ex.getCodigoError() : "REGLA_NEGOCIO_INSTITUCIONAL")
                 .mensaje(ex.getMessage())
                 .ruta(peticion.getRequestURI())
+                .detallesAdicionales(ex.getDetallesAdicionales())
                 .build();
 
         return ResponseEntity.status(ex.getEstado()).body(error);

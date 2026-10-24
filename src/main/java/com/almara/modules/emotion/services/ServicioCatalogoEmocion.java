@@ -39,7 +39,8 @@ public class ServicioCatalogoEmocion {
         if (emocionesDb != null && !emocionesDb.isEmpty()) {
             return emocionesDb.stream()
                     .map(e -> ElementoCatalogoEmocion.builder()
-                            .id(TipoEmocion.valueOf(e.getIdEmocion()))
+                            .id(resolverTipoEmocionSeguro(e.getIdEmocion()))
+                            .idEmocion(e.getIdEmocion())
                             .etiquetaVisible(e.getNombreEtiqueta())
                             .codigoHexColor(e.getCodigoHexColor())
                             .codigoHexFondo(e.getCodigoHexFondo())
@@ -80,5 +81,16 @@ public class ServicioCatalogoEmocion {
             case ENFADO -> "😠";
             case ANSIEDAD -> "😰";
         };
+    }
+
+    private TipoEmocion resolverTipoEmocionSeguro(String idEmocion) {
+        if (idEmocion == null) {
+            return null;
+        }
+        try {
+            return TipoEmocion.valueOf(idEmocion.trim().toUpperCase());
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

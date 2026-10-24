@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -16,4 +17,6 @@ public interface RepositorioMatrizPermisoModulo extends JpaRepository<MatrizPerm
     List<MatrizPermisoModulo> findByIdPlan(UUID idPlan);
 
     List<MatrizPermisoModulo> findByIdPlanAndModuloHabilitadoTrue(UUID idPlan);
+
+    Optional<MatrizPermisoModulo> findByIdPlanAndIdModulo(UUID idPlan, UUID idModulo);
 }

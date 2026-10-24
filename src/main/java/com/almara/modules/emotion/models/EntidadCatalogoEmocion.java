@@ -3,9 +3,14 @@ package com.almara.modules.emotion.models;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import java.time.Instant;
+import com.almara.modules.admin.models.state.EstadoEmocion;
+import com.almara.modules.admin.models.state.EstadoEmocionActiva;
+import com.almara.modules.admin.models.state.EstadoEmocionInactiva;
 
 /**
  * Entidad JPA mapeada a la tabla catalogo_emocion del modelo de datos de Almara (almara_dbdiagram.dbml).
@@ -54,6 +59,24 @@ public class EntidadCatalogoEmocion {
         this.descripcion = descripcion;
         this.activo = activo;
         this.fechaCreacion = fechaCreacion;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = Instant.now();
+        }
+        if (this.activo == null) {
+            this.activo = true;
+        }
+    }
+
+    /**
+     * Retorna el estado del ciclo de vida de la emoción (State Pattern - HU-12).
+     */
+    @Transient
+    public EstadoEmocion obtenerEstado() {
+        return Boolean.TRUE.equals(this.activo) ? new EstadoEmocionActiva() : new EstadoEmocionInactiva();
     }
 
     public static Constructor builder() {

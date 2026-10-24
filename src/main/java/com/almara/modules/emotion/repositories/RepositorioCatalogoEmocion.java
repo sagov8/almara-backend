@@ -14,4 +14,8 @@ import java.util.List;
 public interface RepositorioCatalogoEmocion extends JpaRepository<EntidadCatalogoEmocion, String> {
 
     List<EntidadCatalogoEmocion> findByActivoTrue();
+
+    long countByActivoTrue();
+
+    List<EntidadCatalogoEmocion> findAllByOrderByNombreEtiquetaAsc();
 }

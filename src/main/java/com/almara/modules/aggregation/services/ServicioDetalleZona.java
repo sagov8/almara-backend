@@ -238,7 +238,7 @@ public class ServicioDetalleZona {
                 .orElse(TipoEmocion.NEUTRALIDAD);
     }
 
-    private String calcularTendencia(TipoEmocion predominante, List<ReporteEmocion> reportes) {
+    public String calcularTendencia(TipoEmocion predominante, List<ReporteEmocion> reportes) {
         if (predominante == null) {
             return "Estable";
         }

@@ -30,3 +30,5 @@ almara:
     segundos-bloqueo: 900
   h3:
     default-resolution: 9
+  notificaciones:
+    proveedor: simulado

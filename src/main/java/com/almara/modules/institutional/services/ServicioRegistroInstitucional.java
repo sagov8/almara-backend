@@ -90,7 +90,8 @@ public class ServicioRegistroInstitucional {
         }
 
         UUID idUsuario = UUID.randomUUID();
-        String tokenVerificacion = UUID.randomUUID().toString();
+        // Generación de código OTP seguro de 6 dígitos numéricos para verificación amigable por correo
+        String tokenVerificacion = String.format("%06d", new java.security.SecureRandom().nextInt(1_000_000));
         String passwordHash = utilidadPasswordHash.hashearPassword(solicitud.getPassword());
 
         ClienteInstitucional cliente = ClienteInstitucional.builder()

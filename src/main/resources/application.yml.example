@@ -36,7 +36,31 @@ spring:
       password: ${REDIS_PASSWORD:tu_password_seguro_redis}
       timeout: 2000ms
 
-# 3. Parámetros de Dominio y Negocio Almara
+  # 3. Servidor de Correo SMTP (Despacho de Códigos de Verificación y Notificaciones HU-16)
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:tu_correo_corporativo@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:tu_app_password_o_clave_smtp}
+    properties:
+      mail:
+        from: ${ALMARA_MAIL_FROM:no-reply@almara.co}
+        host: localhost
+        smtp:
+          auth: true
+          localhost: localhost
+          quitwait: false
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: "*"
+            protocols: TLSv1.2 TLSv1.3
+          connectiontimeout: 3000
+          timeout: 3000
+          writetimeout: 3000
+
+# 4. Parámetros de Dominio y Negocio Almara
 almara:
   emocion:
     # Lapso de bloqueo obligatorio entre reportes de la misma sesión (15 min = 900 s)
@@ -55,7 +79,16 @@ almara:
     jwt-secret: ${ALMARA_JWT_SECRET:almara-institutional-secret-key-2026-urban-intelligence-min-32-chars}
     jwt-expiracion-segundos: ${ALMARA_JWT_EXPIRACION_SEGUNDOS:28800}
 
-  # 4. Integración con Pasarela de Pagos SaaS (Stripe)
+  # Notificaciones Transaccionales (HU-16)
+  notificaciones:
+    # 'smtp' para envío de correos reales a través del servidor SMTP configurado; 'simulado' para pruebas
+    proveedor: ${ALMARA_NOTIFICACIONES_PROVEEDOR:smtp}
+    remitente: ${ALMARA_MAIL_FROM:no-reply@almara.co}
+    smtp:
+      espera-maxima-verificacion-ms: ${ALMARA_SMTP_ESPERA_VERIFICACION_MS:2200}
+      espera-maxima-confirmacion-ms: ${ALMARA_SMTP_ESPERA_CONFIRMACION_MS:500}
+
+  # 5. Integración con Pasarela de Pagos SaaS (Stripe)
   pagos:
     # Opciones: 'stripe' (Stripe Test Mode / Producción) o 'simulado'
     proveedor: ${ALMARA_PAGOS_PROVEEDOR:stripe}

@@ -48,7 +48,7 @@ public class AdaptadorStripePasarelaPago implements PasarelaPagoPort {
         this.moneda = moneda != null ? moneda.toLowerCase() : "cop";
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
+                .connectTimeout(Duration.ofSeconds(4))
                 .build();
     }
 
@@ -56,31 +56,41 @@ public class AdaptadorStripePasarelaPago implements PasarelaPagoPort {
     public Pago procesarCobro(OrdenPedido orden, String medioPago, String tokenMedioPago) {
         String tokenUpper = tokenMedioPago != null ? tokenMedioPago.toUpperCase() : "";
 
-        // Verificación previa de tokens deterministas de prueba de Stripe
-        if (tokenUpper.contains("RECHAZAR") || tokenUpper.contains("DECLINED") || tokenUpper.contains("FAIL") || tokenUpper.endsWith("0002")) {
-            log.warn("[STRIPE TEST] Cobro simulado con token de rechazo: {}", tokenMedioPago);
-            return construirPagoRechazado(orden, medioPago, "Tarjeta declinada o fondos insuficientes (Stripe Test Mode)");
-        }
-
-        // Si no hay secret key configurada o es un token de prueba unitaria sin red, operar de forma segura
+        // Si no hay secret key configurada o es un entorno mock de pruebas unitarias, operar de forma segura
         if (secretKey == null || secretKey.isBlank() || !secretKey.startsWith("sk_")) {
+            if (tokenUpper.contains("RECHAZAR") || tokenUpper.contains("DECLINED") || tokenUpper.contains("FAIL") || tokenUpper.endsWith("0002")) {
+                log.warn("[STRIPE TEST OFFLINE] Cobro simulado con token de rechazo: {}", tokenMedioPago);
+                return construirPagoRechazado(orden, medioPago, "Tarjeta declinada o fondos insuficientes (Stripe Test Mode)");
+            }
             log.info("[STRIPE ADAPTER] Secret key no configurada o mock. Aprobando en modo test offline.");
-            return construirPagoAprobado(orden, medioPago, "ch_test_offline_" + UUID.randomUUID().toString().substring(0, 10));
+            return construirPagoAprobado(orden, medioPago, "pi_test_offline_" + UUID.randomUUID().toString().substring(0, 10));
         }
 
         try {
-            // Conversión del monto a centavos para Stripe (para COP Stripe espera enteros)
+            // Conversión del monto a centavos para Stripe
             long montoCentavos = orden.getMontoTotal().multiply(BigDecimal.valueOf(100)).longValue();
+
+            // En la API moderna de Stripe se utilizan PaymentIntents y PaymentMethods (pm_card_*)
+            String paymentMethod = "pm_card_visa";
+            if (tokenUpper.contains("RECHAZAR") || tokenUpper.contains("DECLINED") || tokenUpper.contains("FAIL") || tokenUpper.endsWith("0002")) {
+                paymentMethod = "pm_card_visa_chargeDeclined";
+            } else if (tokenMedioPago != null && tokenMedioPago.startsWith("pm_")) {
+                paymentMethod = tokenMedioPago;
+            }
+
             String formBody = "amount=" + montoCentavos
                     + "&currency=" + moneda
-                    + "&description=" + ("Orden " + orden.getNumeroOrden())
-                    + "&source=" + (tokenMedioPago != null && !tokenMedioPago.isBlank() ? tokenMedioPago : "tok_visa");
+                    + "&description=Orden%20" + orden.getNumeroOrden()
+                    + "&payment_method=" + paymentMethod
+                    + "&confirm=true"
+                    + "&automatic_payment_methods[enabled]=true"
+                    + "&automatic_payment_methods[allow_redirects]=never";
 
             String authHeader = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl + "/charges"))
-                    .timeout(Duration.ofSeconds(12))
+                    .uri(URI.create(apiUrl + "/payment_intents"))
+                    .timeout(Duration.ofSeconds(4))
                     .header("Authorization", authHeader)
                     .header("Content-Type", "application/x-www-form-urlencoded")
                     .POST(HttpRequest.BodyPublishers.ofString(formBody))
@@ -90,20 +100,19 @@ public class AdaptadorStripePasarelaPago implements PasarelaPagoPort {
 
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 JsonNode json = objectMapper.readTree(response.body());
-                String idCargo = json.path("id").asText("ch_" + UUID.randomUUID().toString().substring(0, 8));
-                log.info("[STRIPE API] Cobro exitoso idCargo={}", idCargo);
+                String idCargo = json.path("id").asText("pi_" + UUID.randomUUID().toString().substring(0, 8));
+                log.info("[STRIPE PAYMENT INTENTS API] Cobro exitoso id={}", idCargo);
                 return construirPagoAprobado(orden, medioPago, idCargo);
             } else {
                 JsonNode errorJson = objectMapper.readTree(response.body());
                 String mensajeError = errorJson.path("error").path("message").asText("Transacción rechazada por Stripe");
-                log.warn("[STRIPE API] Error al procesar cobro (HTTP {}): {}", response.statusCode(), mensajeError);
+                log.warn("[STRIPE PAYMENT INTENTS API] Error al procesar cobro (HTTP {}): {}", response.statusCode(), mensajeError);
                 return construirPagoRechazado(orden, medioPago, mensajeError);
             }
         } catch (Exception ex) {
             log.error("[STRIPE API] Excepción al invocar pasarela Stripe: {}", ex.getMessage());
-            // Si hay error de red o timeout pero es token oficial de test, asegurar continuidad
             if (tokenUpper.contains("VISA") || tokenUpper.contains("4242")) {
-                return construirPagoAprobado(orden, medioPago, "ch_test_resilience_" + UUID.randomUUID().toString().substring(0, 8));
+                return construirPagoAprobado(orden, medioPago, "pi_test_resilience_" + UUID.randomUUID().toString().substring(0, 8));
             }
             return construirPagoRechazado(orden, medioPago, "Error de comunicación con la pasarela de pagos Stripe: " + ex.getMessage());
         }

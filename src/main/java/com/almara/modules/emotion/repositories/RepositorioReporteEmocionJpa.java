@@ -16,6 +16,10 @@ public interface RepositorioReporteEmocionJpa extends JpaRepository<EntidadRepor
 
     List<EntidadReporteEmocion> findByIdCeldaH3IgnoreCase(String idCeldaH3);
 
+    boolean existsByIdEmocionIgnoreCase(String idEmocion);
+
+    long countByIdEmocionIgnoreCase(String idEmocion);
+
 
 
 

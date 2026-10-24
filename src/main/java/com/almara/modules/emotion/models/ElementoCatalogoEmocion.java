@@ -6,6 +6,7 @@ package com.almara.modules.emotion.models;
 public class ElementoCatalogoEmocion {
 
     private TipoEmocion id;
+    private String idEmocion;
     private String etiquetaVisible;
     private String codigoHexColor;
     private String codigoHexFondo;
@@ -38,6 +39,14 @@ public class ElementoCatalogoEmocion {
 
     public void setId(TipoEmocion id) {
         this.id = id;
+    }
+
+    public String getIdEmocion() {
+        return idEmocion != null ? idEmocion : (id != null ? id.name() : null);
+    }
+
+    public void setIdEmocion(String idEmocion) {
+        this.idEmocion = idEmocion;
     }
 
     public String getEtiquetaVisible() {
@@ -82,6 +91,7 @@ public class ElementoCatalogoEmocion {
 
     public static class Constructor {
         private TipoEmocion id;
+        private String idEmocion;
         private String etiquetaVisible;
         private String codigoHexColor;
         private String codigoHexFondo;
@@ -90,6 +100,14 @@ public class ElementoCatalogoEmocion {
 
         public Constructor id(TipoEmocion id) {
             this.id = id;
+            if (id != null && this.idEmocion == null) {
+                this.idEmocion = id.name();
+            }
+            return this;
+        }
+
+        public Constructor idEmocion(String idEmocion) {
+            this.idEmocion = idEmocion;
             return this;
         }
 
@@ -119,7 +137,9 @@ public class ElementoCatalogoEmocion {
         }
 
         public ElementoCatalogoEmocion build() {
-            return new ElementoCatalogoEmocion(id, etiquetaVisible, codigoHexColor, codigoHexFondo, iconoSvg, descripcion);
+            ElementoCatalogoEmocion elemento = new ElementoCatalogoEmocion(id, etiquetaVisible, codigoHexColor, codigoHexFondo, iconoSvg, descripcion);
+            elemento.setIdEmocion(idEmocion != null ? idEmocion : (id != null ? id.name() : null));
+            return elemento;
         }
     }
 }
