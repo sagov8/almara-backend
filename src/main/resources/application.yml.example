@@ -1,38 +1,67 @@
+# ==============================================================================
+# ALMARA BACKEND - PLANTILLA DE CONFIGURACIÓN (application.yml.example)
+# Copia este archivo como 'application.yml' o configura las variables de entorno.
+# NUNCA agregues claves privadas reales en este archivo versionado en Git.
+# ==============================================================================
+
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: almara-backend
 
+  # 1. Base de Datos Principal (PostgreSQL + PostGIS)
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:almara_db}
-    username: ${POSTGRES_USER:almara_user}
-    password: ${POSTGRES_PASSWORD:almara_secret_password}
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:almara_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:almara_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:tu_password_seguro_postgres}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.postgresql.Driver}
 
   jpa:
     hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect
-        format_sql: true
+      ddl-auto: none
     open-in-view: false
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  # 2. Redis (Caché, Control de Frecuencia y Revocación de Tokens)
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:almara_redis_password}
+      password: ${REDIS_PASSWORD:tu_password_seguro_redis}
+      timeout: 2000ms
 
-# Configuración de Seguridad y JWT
+# 3. Parámetros de Dominio y Negocio Almara
 almara:
-  security:
-    jwt:
-      secret: ${JWT_SECRET:almara_super_secret_jwt_key_for_development_purposes_only_1234567890}
-      expiration-ms: 86400000 # 24 horas
+  emocion:
+    # Lapso de bloqueo obligatorio entre reportes de la misma sesión (15 min = 900 s)
+    segundos-bloqueo: 900
+
   h3:
-    default-resolution: 9 # Resolución estándar para hexágonos urbanos (~100m)
+    # Resolución estándar H3 para hexágonos urbanos (~100m - ~450m, Popayán)
+    default-resolution: 9
+
   privacy:
-    default-k-anonymity: 5 # k-anonimato base mínimo
+    # k-anonimato base mínimo
+    default-k-anonymity: 5
+
+  # Seguridad y Tokens JWT Institucionales
+  seguridad:
+    jwt-secret: ${ALMARA_JWT_SECRET:almara-institutional-secret-key-2026-urban-intelligence-min-32-chars}
+    jwt-expiracion-segundos: ${ALMARA_JWT_EXPIRACION_SEGUNDOS:28800}
+
+  # 4. Integración con Pasarela de Pagos SaaS (Stripe)
+  pagos:
+    # Opciones: 'stripe' (Stripe Test Mode / Producción) o 'simulado'
+    proveedor: ${ALMARA_PAGOS_PROVEEDOR:stripe}
+    stripe:
+      api-url: ${STRIPE_API_URL:https://api.stripe.com/v1}
+      publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_tu_clave_publica_aqui}
+      secret-key: ${STRIPE_SECRET_KEY:sk_test_tu_clave_secreta_aqui}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_tu_webhook_secret_aqui}
+      moneda: ${STRIPE_MONEDA:cop}

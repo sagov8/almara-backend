@@ -1,16 +1,22 @@
 package com.almara.modules.institutional.models;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Entidad de dominio Orden de Pedido para transacciones y suscripciones SaaS (HU-21, HU-22, HU-23).
+ * Modela la composición fuerte: OrdenPedido "1" *-- "1..*" LineaDetalle.
  */
 @Entity
 @Table(name = "orden_pedido")
@@ -38,6 +44,9 @@ public class OrdenPedido {
     @Column(name = "monto_total", precision = 12, scale = 2, nullable = false)
     private BigDecimal montoTotal;
 
+    @OneToMany(mappedBy = "ordenPedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<LineaDetalle> lineasDetalle = new ArrayList<>();
+
     public OrdenPedido() {
     }
 
@@ -50,6 +59,69 @@ public class OrdenPedido {
         this.fechaEmision = fechaEmision != null ? fechaEmision : Instant.now();
         this.estadoOrden = estadoOrden;
         this.montoTotal = montoTotal;
+        this.lineasDetalle = new ArrayList<>();
+    }
+
+    public OrdenPedido(UUID idOrden, String numeroOrden, UUID idInstitucion, UUID idPlanSeleccionado,
+                       Instant fechaEmision, String estadoOrden, BigDecimal montoTotal, List<LineaDetalle> lineasDetalle) {
+        this.idOrden = idOrden;
+        this.numeroOrden = numeroOrden;
+        this.idInstitucion = idInstitucion;
+        this.idPlanSeleccionado = idPlanSeleccionado;
+        this.fechaEmision = fechaEmision != null ? fechaEmision : Instant.now();
+        this.estadoOrden = estadoOrden;
+        this.montoTotal = montoTotal;
+        this.lineasDetalle = lineasDetalle != null ? lineasDetalle : new ArrayList<>();
+    }
+
+    /**
+     * Agrega una línea de detalle asegurando la relación bidireccional de composición fuerte.
+     */
+    public void agregarLineaDetalle(LineaDetalle linea) {
+        if (this.lineasDetalle == null) {
+            this.lineasDetalle = new ArrayList<>();
+        }
+        linea.setOrdenPedido(this);
+        this.lineasDetalle.add(linea);
+        calcularTotal();
+    }
+
+    /**
+     * Elimina una línea de detalle.
+     */
+    public void eliminarLineaDetalle(UUID idLinea) {
+        if (this.lineasDetalle != null) {
+            this.lineasDetalle.removeIf(l -> l.getIdLinea().equals(idLinea));
+            calcularTotal();
+        }
+    }
+
+    /**
+     * Recalcula el monto total de la orden sumando los subtotales de sus líneas de detalle.
+     */
+    public BigDecimal calcularTotal() {
+        if (this.lineasDetalle == null || this.lineasDetalle.isEmpty()) {
+            return this.montoTotal != null ? this.montoTotal : BigDecimal.ZERO;
+        }
+        this.montoTotal = this.lineasDetalle.stream()
+                .map(LineaDetalle::calcularLinea)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return this.montoTotal;
+    }
+
+    /**
+     * Confirma el checkout de la orden estableciendo su estado inicial pendiente de pago.
+     */
+    public void confirmarCheckout() {
+        this.estadoOrden = "PENDIENTE_PAGO";
+        calcularTotal();
+    }
+
+    /**
+     * Actualiza el estado del ciclo de vida de la orden (PENDIENTE_PAGO, PAGADA, FALLIDA, CANCELADA).
+     */
+    public void actualizarEstado(String nuevoEstado) {
+        this.estadoOrden = nuevoEstado;
     }
 
     public UUID getIdOrden() {
@@ -108,6 +180,14 @@ public class OrdenPedido {
         this.montoTotal = montoTotal;
     }
 
+    public List<LineaDetalle> getLineasDetalle() {
+        return lineasDetalle;
+    }
+
+    public void setLineasDetalle(List<LineaDetalle> lineasDetalle) {
+        this.lineasDetalle = lineasDetalle;
+    }
+
     public static Constructor builder() {
         return new Constructor();
     }
@@ -118,8 +198,9 @@ public class OrdenPedido {
         private UUID idInstitucion;
         private UUID idPlanSeleccionado;
         private Instant fechaEmision = Instant.now();
-        private String estadoOrden = "PENDIENTE";
+        private String estadoOrden = "PENDIENTE_PAGO";
         private BigDecimal montoTotal = BigDecimal.ZERO;
+        private List<LineaDetalle> lineasDetalle = new ArrayList<>();
 
         public Constructor idOrden(UUID idOrden) {
             this.idOrden = idOrden;
@@ -156,8 +237,20 @@ public class OrdenPedido {
             return this;
         }
 
+        public Constructor lineasDetalle(List<LineaDetalle> lineasDetalle) {
+            this.lineasDetalle = lineasDetalle;
+            return this;
+        }
+
         public OrdenPedido build() {
-            return new OrdenPedido(idOrden, numeroOrden, idInstitucion, idPlanSeleccionado, fechaEmision, estadoOrden, montoTotal);
+            OrdenPedido orden = new OrdenPedido(idOrden, numeroOrden, idInstitucion, idPlanSeleccionado, fechaEmision, estadoOrden, montoTotal, lineasDetalle);
+            if (lineasDetalle != null && !lineasDetalle.isEmpty()) {
+                lineasDetalle.forEach(l -> l.setOrdenPedido(orden));
+                if (montoTotal == null || montoTotal.compareTo(BigDecimal.ZERO) == 0) {
+                    orden.calcularTotal();
+                }
+            }
+            return orden;
         }
     }
 }

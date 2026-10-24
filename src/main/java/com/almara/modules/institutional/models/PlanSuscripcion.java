@@ -50,6 +50,16 @@ public class PlanSuscripcion extends ProductoServicio {
         return this.precioBase != null ? this.precioBase.setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
     }
 
+    public boolean esCompatibleConModulo(UUID idModulo, java.util.List<MatrizPermisoModulo> matriz) {
+        if (idModulo == null || matriz == null) {
+            return false;
+        }
+        return matriz.stream()
+                .anyMatch(m -> this.getIdProducto().equals(m.getIdPlan())
+                        && idModulo.equals(m.getIdModulo())
+                        && m.isModuloHabilitado());
+    }
+
     public String getTipoPlan() {
         return tipoPlan;
     }

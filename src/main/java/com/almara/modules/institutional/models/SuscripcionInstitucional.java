@@ -72,6 +72,17 @@ public class SuscripcionInstitucional {
         this.fechaActualizacion = Instant.now();
     }
 
+    public long calcularDiasRestantes() {
+        if (!estaVigente() || this.fechaExpiracion == null) {
+            return 0L;
+        }
+        long segundos = java.time.Duration.between(Instant.now(), this.fechaExpiracion).getSeconds();
+        if (segundos <= 0) {
+            return 0L;
+        }
+        return (segundos + 86399L) / 86400L;
+    }
+
     public UUID getIdSuscripcion() {
         return idSuscripcion;
     }
