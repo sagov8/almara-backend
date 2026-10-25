@@ -126,6 +126,11 @@ public class ProveedorTokenJwtInstitucional {
             String estadoSuscripcion = jsonNode.path("estadoSuscripcion").asText();
             long iat = jsonNode.path("iat").asLong();
 
+            if (servicioRevocacionToken != null && servicioRevocacionToken.estaSesionUsuarioRevocada(idUsuario, iat)) {
+                throw new ExcepcionReglaNegocioInstitucional(HttpStatus.UNAUTHORIZED, "TOKEN_REVOCADO",
+                        "Las sesiones activas de esta institución han sido revocadas por el administrador. Inicie sesión nuevamente.");
+            }
+
             return new ClaimsTokenInstitucional(jti, idUsuario, correo, razonSocial, rol, codigoPlan, estadoSuscripcion, iat, exp);
         } catch (ExcepcionReglaNegocioInstitucional ex) {
             throw ex;

@@ -1,5 +1,6 @@
 package com.almara.modules.aggregation.controllers;
 
+import com.almara.modules.admin.services.ProveedorConfiguracionUmbralMapa;
 import com.almara.modules.aggregation.models.CeldaMapaEmocional;
 import com.almara.modules.aggregation.models.ConsultaMapaEmocionalRespuesta;
 import com.almara.modules.aggregation.models.ContextoZoomMapa;
@@ -9,6 +10,7 @@ import com.almara.modules.aggregation.services.ServicioAgregacionMapa;
 import com.almara.modules.aggregation.services.ServicioDetalleZona;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 /**
  * Controlador REST para la consulta de la capa emocional del mapa interactivo (HU-05 y HU-06).
- * Implementa el patrón Strategy para la resolución H3 dinámica y detalle emocional por zona.
+ * Implementa el patrón Strategy para la resolución H3 dinámica y calibración de k-anonimato (HU-13).
  */
 @RestController
 @RequestMapping("/api/v1/mapa")
@@ -29,15 +31,26 @@ public class ControladorMapa {
     private final ServicioDetalleZona servicioDetalleZona;
     private final com.almara.modules.aggregation.websocket.PublicadorSincronizacionMapa publicadorSincronizacionMapa;
     private final com.almara.modules.emotion.repositories.RepositorioReporteEmocion repositorioReporteEmocion;
+    private final ProveedorConfiguracionUmbralMapa proveedorConfiguracion;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ControladorMapa(ServicioAgregacionMapa servicioAgregacionMapa,
+                           ServicioDetalleZona servicioDetalleZona,
+                           com.almara.modules.aggregation.websocket.PublicadorSincronizacionMapa publicadorSincronizacionMapa,
+                           com.almara.modules.emotion.repositories.RepositorioReporteEmocion repositorioReporteEmocion,
+                           ObjectProvider<ProveedorConfiguracionUmbralMapa> proveedorConfigProvider) {
+        this.servicioAgregacionMapa = servicioAgregacionMapa;
+        this.servicioDetalleZona = servicioDetalleZona;
+        this.publicadorSincronizacionMapa = publicadorSincronizacionMapa;
+        this.repositorioReporteEmocion = repositorioReporteEmocion;
+        this.proveedorConfiguracion = proveedorConfigProvider != null ? proveedorConfigProvider.getIfAvailable() : null;
+    }
 
     public ControladorMapa(ServicioAgregacionMapa servicioAgregacionMapa,
                            ServicioDetalleZona servicioDetalleZona,
                            com.almara.modules.aggregation.websocket.PublicadorSincronizacionMapa publicadorSincronizacionMapa,
                            com.almara.modules.emotion.repositories.RepositorioReporteEmocion repositorioReporteEmocion) {
-        this.servicioAgregacionMapa = servicioAgregacionMapa;
-        this.servicioDetalleZona = servicioDetalleZona;
-        this.publicadorSincronizacionMapa = publicadorSincronizacionMapa;
-        this.repositorioReporteEmocion = repositorioReporteEmocion;
+        this(servicioAgregacionMapa, servicioDetalleZona, publicadorSincronizacionMapa, repositorioReporteEmocion, null);
     }
 
     /**
@@ -46,18 +59,19 @@ public class ControladorMapa {
     @GetMapping("/celdas")
     public ResponseEntity<ConsultaMapaEmocionalRespuesta> consultarCeldasVisibles(
             @RequestParam(name = "zoom", defaultValue = "14") int zoom,
-            @RequestParam(name = "umbralK", defaultValue = "5") int umbralK,
+            @RequestParam(name = "umbralK", required = false) Integer umbralK,
             @RequestParam(name = "minLat", required = false) Double minLat,
             @RequestParam(name = "maxLat", required = false) Double maxLat,
             @RequestParam(name = "minLon", required = false) Double minLon,
             @RequestParam(name = "maxLon", required = false) Double maxLon
     ) {
-        log.info("GET /api/v1/mapa/celdas -> zoom={}, umbralK={}, bbox=[{}, {}, {}, {}]",
-                zoom, umbralK, minLat, maxLat, minLon, maxLon);
+        int umbralEfectivo = resolverUmbral(umbralK);
+        log.info("GET /api/v1/mapa/celdas -> zoom={}, umbralK={}, umbralEfectivo={}, bbox=[{}, {}, {}, {}]",
+                zoom, umbralK, umbralEfectivo, minLat, maxLat, minLon, maxLon);
 
         ContextoZoomMapa contexto = ContextoZoomMapa.builder()
                 .nivelZoom(zoom)
-                .umbralMinimoK(umbralK)
+                .umbralMinimoK(umbralEfectivo)
                 .minLat(minLat)
                 .maxLat(maxLat)
                 .minLon(minLon)
@@ -74,12 +88,13 @@ public class ControladorMapa {
     @GetMapping("/popayan")
     public ResponseEntity<ConsultaMapaEmocionalRespuesta> consultarMapaPopayan(
             @RequestParam(name = "zoom", defaultValue = "14") int zoom,
-            @RequestParam(name = "umbralK", defaultValue = "5") int umbralK
+            @RequestParam(name = "umbralK", required = false) Integer umbralK
     ) {
+        int umbralEfectivo = resolverUmbral(umbralK);
         // Coordenadas aproximadas del cuadrante urbano de Popayán
         ContextoZoomMapa contexto = ContextoZoomMapa.builder()
                 .nivelZoom(zoom)
-                .umbralMinimoK(umbralK)
+                .umbralMinimoK(umbralEfectivo)
                 .minLat(2.4000)
                 .maxLat(2.5100)
                 .minLon(-76.6500)
@@ -96,15 +111,49 @@ public class ControladorMapa {
     @GetMapping("/todas-celdas")
     public ResponseEntity<List<CeldaMapaEmocional>> consultarTodasLasCeldas(
             @RequestParam(name = "zoom", defaultValue = "14") int zoom,
-            @RequestParam(name = "umbralK", defaultValue = "5") int umbralK
+            @RequestParam(name = "umbralK", required = false) Integer umbralK
     ) {
+        int umbralEfectivo = resolverUmbral(umbralK);
         ContextoZoomMapa contexto = ContextoZoomMapa.builder()
                 .nivelZoom(zoom)
-                .umbralMinimoK(umbralK)
+                .umbralMinimoK(umbralEfectivo)
                 .build();
 
         List<CeldaMapaEmocional> todas = servicioAgregacionMapa.obtenerTodasLasCeldas(contexto);
         return ResponseEntity.ok(todas);
+    }
+
+    /**
+     * Consulta pública de los parámetros vigentes de k-anonimato y mensaje de protección (HU-13).
+     */
+    @GetMapping("/configuracion-privacidad")
+    public ResponseEntity<?> consultarConfiguracionPrivacidad() {
+        if (proveedorConfiguracion != null) {
+            var config = proveedorConfiguracion.obtenerConfiguracionActual();
+            return ResponseEntity.ok(java.util.Map.of(
+                    "umbralMinimoK", config.getUmbralMinimoK(),
+                    "tiempoRecalculoSegundos", config.getTiempoRecalculoSegundos(),
+                    "modoEstricto", config.isModoEstricto(),
+                    "mensajeProteccionComunidad", config.getMensajeProteccion()
+            ));
+        }
+        return ResponseEntity.ok(java.util.Map.of(
+                "umbralMinimoK", 5,
+                "tiempoRecalculoSegundos", 60,
+                "modoEstricto", true,
+                "mensajeProteccionComunidad", ServicioAgregacionMapa.MENSAJE_PROTECCION_DEFAULT
+        ));
+    }
+
+    private int resolverUmbral(Integer umbralK) {
+        if (proveedorConfiguracion != null) {
+            int umbralGlobal = proveedorConfiguracion.obtenerUmbralMinimoK();
+            if (umbralK == null) {
+                return umbralGlobal;
+            }
+            return Math.max(umbralK, umbralGlobal);
+        }
+        return umbralK != null ? umbralK : 5;
     }
 
     /**

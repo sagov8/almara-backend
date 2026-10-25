@@ -16,4 +16,6 @@ public interface RepositorioAuditoriaAdmin extends JpaRepository<AuditoriaAdmin,
     List<AuditoriaAdmin> findTop50ByOrderByFechaEventoDesc();
 
     List<AuditoriaAdmin> findByIdAdminOrderByFechaEventoDesc(UUID idAdmin);
+
+    List<AuditoriaAdmin> findByAccionOrderByFechaEventoDesc(String accion);
 }
