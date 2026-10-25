@@ -36,7 +36,7 @@ spring:
       password: ${REDIS_PASSWORD:tu_password_seguro_redis}
       timeout: 2000ms
 
-  # 3. Servidor de Correo SMTP (Despacho de Códigos de Verificación y Notificaciones HU-16)
+  # 3. Servidor de Correo SMTP (Despacho de Códigos de Verificación y Notificaciones)
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
@@ -74,12 +74,14 @@ almara:
     # k-anonimato base mínimo
     default-k-anonymity: 5
 
-  # Seguridad y Tokens JWT Institucionales
+  # Seguridad y Tokens JWT
   seguridad:
+    admin-jwt-secret: ${ALMARA_ADMIN_JWT_SECRET:almara-admin-super-secure-secret-key-2026-popayan}
+    admin-jwt-expiracion-segundos: ${ALMARA_ADMIN_JWT_EXPIRACION:28800}
     jwt-secret: ${ALMARA_JWT_SECRET:almara-institutional-secret-key-2026-urban-intelligence-min-32-chars}
     jwt-expiracion-segundos: ${ALMARA_JWT_EXPIRACION_SEGUNDOS:28800}
 
-  # Notificaciones Transaccionales (HU-16)
+  # Notificaciones Transaccionales
   notificaciones:
     # 'smtp' para envío de correos reales a través del servidor SMTP configurado; 'simulado' para pruebas
     proveedor: ${ALMARA_NOTIFICACIONES_PROVEEDOR:smtp}
