@@ -1,0 +1,119 @@
+# ==============================================================================
+# ALMARA BACKEND - PLANTILLA DE CONFIGURACIÓN (application.properties.example)
+#
+# Copie este archivo como 'application.properties' o configure las variables
+# de entorno correspondientes en su sistema o servidor de despliegue.
+#
+# NUNCA agregue contraseñas o claves privadas reales en archivos bajo control Git.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. SERVIDOR HTTP REST
+# ------------------------------------------------------------------------------
+# Puerto de escucha del servidor Spring Boot
+server.port=${PORT:8080}
+
+# Nombre identificador de la aplicación
+spring.application.name=almara-backend
+
+# ------------------------------------------------------------------------------
+# 2. BASE DE DATOS PRINCIPAL (PostgreSQL + PostGIS)
+# ------------------------------------------------------------------------------
+# URL JDBC de conexión hacia PostgreSQL
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/almara_db}
+
+# Credenciales de acceso a la base de datos
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:almara_user}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:almara_secret_password}
+spring.datasource.driver-class-name=${SPRING_DATASOURCE_DRIVER:org.postgresql.Driver}
+
+# Configuración Hibernate / JPA
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.open-in-view=false
+
+# Migraciones automáticas de esquema y datos (Flyway)
+spring.flyway.enabled=true
+spring.flyway.baseline-on-migrate=true
+spring.flyway.locations=classpath:db/migration
+
+# ------------------------------------------------------------------------------
+# 3. ALMACENAMIENTO EN MEMORIA / CACHÉ (Redis)
+# ------------------------------------------------------------------------------
+# Host y puerto del servidor Redis
+spring.data.redis.host=${REDIS_HOST:localhost}
+spring.data.redis.port=${REDIS_PORT:6379}
+
+# Contraseña de Redis (dejar vacía si no requiere autenticación en entorno local)
+spring.data.redis.password=${REDIS_PASSWORD:redis123}
+spring.data.redis.timeout=2000ms
+
+# ------------------------------------------------------------------------------
+# 4. SERVIDOR DE CORREO SALIENTE (SMTP)
+# ------------------------------------------------------------------------------
+# Parámetros del servidor SMTP (ej. smtp.gmail.com, Amazon SES, SendGrid, Mailgun)
+spring.mail.host=${SPRING_MAIL_HOST:smtp.gmail.com}
+spring.mail.port=${SPRING_MAIL_PORT:587}
+
+# Usuario y clave de aplicación generada en el proveedor de correo
+spring.mail.username=${SPRING_MAIL_USERNAME:tu_correo@gmail.com}
+spring.mail.password=${SPRING_MAIL_PASSWORD:tu_clave_de_aplicacion_smtp}
+
+# Propiedades de protocolo y seguridad TLS
+spring.mail.properties.mail.from=${ALMARA_MAIL_FROM:no-reply@almara.co}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+spring.mail.properties.mail.smtp.ssl.trust=*
+spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 TLSv1.3
+
+# Tiempos de espera de conexión (ms) para no bloquear hilos HTTP
+spring.mail.properties.mail.smtp.connectiontimeout=3000
+spring.mail.properties.mail.smtp.timeout=3000
+spring.mail.properties.mail.smtp.writetimeout=3000
+
+# ------------------------------------------------------------------------------
+# 5. PARÁMETROS DE DOMINIO Y NEGOCIO ALMARA
+# ------------------------------------------------------------------------------
+# Lapso de bloqueo obligatorio entre reportes de una misma sesión (15 min = 900 s)
+almara.emocion.segundos-bloqueo=${ALMARA_EMOCION_SEGUNDOS_BLOQUEO:900}
+
+# Resolución geoespacial Uber H3 para hexágonos urbanos en Popayán (Nivel 9 ~ 100m)
+almara.h3.default-resolution=${ALMARA_H3_RESOLUTION:9}
+
+# Umbral base de privacidad por agregación comunitaria (k-anonimato mínimo)
+almara.privacy.default-k-anonymity=${ALMARA_K_ANONYMITY:5}
+
+# ------------------------------------------------------------------------------
+# 6. SEGURIDAD Y TOKENS JWT
+# ------------------------------------------------------------------------------
+# Secreto y expiración para sesiones del Administrador
+almara.seguridad.admin-jwt-secret=${ALMARA_ADMIN_JWT_SECRET:almara-admin-super-secure-secret-key-2026-popayan}
+almara.seguridad.admin-jwt-expiracion-segundos=${ALMARA_ADMIN_JWT_EXPIRACION:28800}
+almara.seguridad.admin-max-intentos=5
+almara.seguridad.admin-minutos-bloqueo=15
+
+# Secreto y expiración para sesiones de Clientes Institucionales
+almara.seguridad.jwt-secret=${ALMARA_JWT_SECRET:almara-institutional-secret-key-2026-urban-intelligence}
+almara.seguridad.jwt-expiracion-segundos=${ALMARA_JWT_EXPIRACION:28800}
+
+# ------------------------------------------------------------------------------
+# 7. NOTIFICACIONES TRANSACCIONALES
+# ------------------------------------------------------------------------------
+# Proveedor de despacho: 'smtp' (correo real) o 'simulado' (solo logs de consola)
+almara.notificaciones.proveedor=${ALMARA_NOTIFICACIONES_PROVEEDOR:smtp}
+almara.notificaciones.remitente=${ALMARA_MAIL_FROM:no-reply@almara.co}
+
+# Tiempos límite de espera (ms) para despacho SMTP
+almara.notificaciones.smtp.espera-maxima-verificacion-ms=${ALMARA_SMTP_ESPERA_VERIFICACION_MS:2200}
+almara.notificaciones.smtp.espera-maxima-confirmacion-ms=${ALMARA_SMTP_ESPERA_CONFIRMACION_MS:500}
+
+# ------------------------------------------------------------------------------
+# 8. PASARELA DE PAGOS Y FACTURACIÓN SAAS (Stripe)
+# ------------------------------------------------------------------------------
+# Proveedor de pagos: 'stripe' (API Stripe) o 'simulado' (aprobación mock inmediata)
+almara.pagos.proveedor=${ALMARA_PAGOS_PROVEEDOR:stripe}
+almara.pagos.stripe.api-url=${STRIPE_API_URL:https://api.stripe.com/v1}
+almara.pagos.stripe.publishable-key=${STRIPE_PUBLISHABLE_KEY:pk_test_tu_clave_publica_aqui}
+almara.pagos.stripe.secret-key=${STRIPE_SECRET_KEY:sk_test_tu_clave_secreta_aqui}
+almara.pagos.stripe.webhook-secret=${STRIPE_WEBHOOK_SECRET:whsec_tu_webhook_secret_aqui}
+almara.pagos.stripe.moneda=${STRIPE_MONEDA:cop}
