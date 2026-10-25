@@ -2,8 +2,10 @@ package com.almara.modules.institutional.services;
 
 import com.almara.modules.aggregation.services.ServicioAgregacionMapa;
 import com.almara.modules.aggregation.services.ServicioDetalleZona;
+import com.almara.modules.emotion.models.EntidadCatalogoEmocion;
 import com.almara.modules.emotion.models.ReporteEmocion;
 import com.almara.modules.emotion.models.TipoEmocion;
+import com.almara.modules.emotion.repositories.RepositorioCatalogoEmocion;
 import com.almara.modules.emotion.repositories.RepositorioReporteEmocion;
 import com.almara.modules.geo.models.Zona;
 import com.almara.modules.geo.repositories.RepositorioZona;
@@ -40,6 +42,7 @@ public class ServicioDashboardInstitucional {
     private final RepositorioClienteInstitucional repositorioClienteInstitucional;
     private final RepositorioZona repositorioZona;
     private final RepositorioReporteEmocion repositorioReporteEmocion;
+    private final RepositorioCatalogoEmocion repositorioCatalogoEmocion;
     private final ServicioAgregacionMapa servicioAgregacionMapa;
     private final ServicioDetalleZona servicioDetalleZona;
 
@@ -47,14 +50,34 @@ public class ServicioDashboardInstitucional {
                                          RepositorioClienteInstitucional repositorioClienteInstitucional,
                                          RepositorioZona repositorioZona,
                                          RepositorioReporteEmocion repositorioReporteEmocion,
+                                          RepositorioCatalogoEmocion repositorioCatalogoEmocion,
                                          ServicioAgregacionMapa servicioAgregacionMapa,
                                          ServicioDetalleZona servicioDetalleZona) {
         this.validadorPermisosBackend = validadorPermisosBackend;
         this.repositorioClienteInstitucional = repositorioClienteInstitucional;
         this.repositorioZona = repositorioZona;
         this.repositorioReporteEmocion = repositorioReporteEmocion;
+        this.repositorioCatalogoEmocion = repositorioCatalogoEmocion;
         this.servicioAgregacionMapa = servicioAgregacionMapa;
         this.servicioDetalleZona = servicioDetalleZona;
+    }
+
+    private Map<String, String> obtenerMapaIconosCatalogo() {
+        try {
+            if (repositorioCatalogoEmocion != null) {
+                List<EntidadCatalogoEmocion> catalogo = repositorioCatalogoEmocion.findByActivoTrue();
+                if (catalogo != null && !catalogo.isEmpty()) {
+                    return catalogo.stream().collect(Collectors.toMap(
+                            e -> e.getIdEmocion().toUpperCase(),
+                            e -> e.getIconoSvg() != null && !e.getIconoSvg().isBlank() ? e.getIconoSvg().trim() : "Smile",
+                            (existente, reemplazo) -> existente
+                    ));
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("No se pudo cargar el catálogo de iconos de emociones desde la BD: {}", ex.getMessage());
+        }
+        return Collections.emptyMap();
     }
 
     /**
@@ -222,6 +245,7 @@ public class ServicioDashboardInstitucional {
                 .filter(r -> r.getIdCeldaH3() != null)
                 .collect(Collectors.groupingBy(ReporteEmocion::getIdCeldaH3));
 
+        Map<String, String> catalogoIconos = obtenerMapaIconosCatalogo();
         List<ZonaTerritorialAnaliticaDto> resultado = new ArrayList<>();
 
         for (Zona zona : zonasManuales) {
@@ -254,7 +278,7 @@ public class ServicioDashboardInstitucional {
                         .emocionPredominante(emocionDominante.name())
                         .nombreEmocionPredominante(emocionDominante.getEtiquetaVisible())
                         .codigoHexColor(emocionDominante.getCodigoHexColor())
-                        .icono(resolverIcono(emocionDominante))
+                        .icono(resolverIcono(emocionDominante, catalogoIconos))
                         .intensidadPromedio(intensidadProm)
                         .participantesAproximados(participantesAprox)
                         .distribucionPorcentual(distribucion)
@@ -273,7 +297,7 @@ public class ServicioDashboardInstitucional {
                         .emocionPredominante(null)
                         .nombreEmocionPredominante(null)
                         .codigoHexColor("#94A3B8")
-                        .icono("🔒")
+                        .icono("Lock")
                         .intensidadPromedio(0.0)
                         .participantesAproximados("En reserva de privacidad (< 5 vecinos)")
                         .distribucionPorcentual(Map.of())
@@ -286,13 +310,14 @@ public class ServicioDashboardInstitucional {
     }
 
     private List<IndicadorEmocionCiudadDto> calcularDistribucionGlobalCiudad(List<ReporteEmocion> reportes) {
+        Map<String, String> catalogoIconos = obtenerMapaIconosCatalogo();
         if (reportes == null || reportes.isEmpty()) {
             return Arrays.stream(TipoEmocion.values())
                     .map(em -> IndicadorEmocionCiudadDto.builder()
                             .idEmocion(em.name())
                             .nombreEmocion(em.getEtiquetaVisible())
                             .codigoHexColor(em.getCodigoHexColor())
-                            .icono(resolverIcono(em))
+                            .icono(resolverIcono(em, catalogoIconos))
                             .porcentajeGlobal(0)
                             .build())
                     .toList();
@@ -307,7 +332,7 @@ public class ServicioDashboardInstitucional {
                     .idEmocion(em.name())
                     .nombreEmocion(em.getEtiquetaVisible())
                     .codigoHexColor(em.getCodigoHexColor())
-                    .icono(resolverIcono(em))
+                    .icono(resolverIcono(em, catalogoIconos))
                     .porcentajeGlobal(pct)
                     .build());
         }
@@ -344,14 +369,20 @@ public class ServicioDashboardInstitucional {
                 .orElse(TipoEmocion.NEUTRALIDAD);
     }
 
-    private String resolverIcono(TipoEmocion emocion) {
-        if (emocion == null) return "📍";
+    private String resolverIcono(TipoEmocion emocion, Map<String, String> catalogoIconos) {
+        if (emocion == null) return "MapPin";
+        if (catalogoIconos != null && catalogoIconos.containsKey(emocion.name())) {
+            String icono = catalogoIconos.get(emocion.name());
+            if (icono != null && !icono.isBlank()) {
+                return icono;
+            }
+        }
         return switch (emocion) {
-            case FELICIDAD -> "😊";
-            case NEUTRALIDAD -> "😐";
-            case PREOCUPACION -> "😟";
-            case ENFADO -> "😡";
-            case ANSIEDAD -> "😰";
+            case FELICIDAD -> "Smile";
+            case NEUTRALIDAD -> "Meh";
+            case PREOCUPACION -> "Frown";
+            case ENFADO -> "Flame";
+            case ANSIEDAD -> "CloudRain";
         };
     }
 }

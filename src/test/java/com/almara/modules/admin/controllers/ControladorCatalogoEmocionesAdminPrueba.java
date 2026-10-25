@@ -135,9 +135,7 @@ class ControladorCatalogoEmocionesAdminPrueba {
                 "FELICIDAD",
                 "Otra Felicidad",
                 "#10B981",
-                "#D1FAE5",
-                "😊",
-                "Duplicada"
+                "#D1FAE5", "Smile", "Duplicada"
         );
 
         mockMvc.perform(post("/api/v1/admin/emociones")
@@ -174,9 +172,7 @@ class ControladorCatalogoEmocionesAdminPrueba {
         ModificarEmocionSolicitud solicitud = new ModificarEmocionSolicitud(
                 "Felicidad Suprema",
                 "#059669",
-                "#A7F3D0",
-                "😄",
-                "Alegría desbordante y máxima satisfacción"
+                "#A7F3D0", "Sparkles", "Alegría desbordante y máxima satisfacción"
         );
 
         mockMvc.perform(put("/api/v1/admin/emociones/FELICIDAD")
@@ -187,7 +183,7 @@ class ControladorCatalogoEmocionesAdminPrueba {
                 .andExpect(jsonPath("$.idEmocion").value("FELICIDAD"))
                 .andExpect(jsonPath("$.nombreEtiqueta").value("Felicidad Suprema"))
                 .andExpect(jsonPath("$.codigoHexColor").value("#059669"))
-                .andExpect(jsonPath("$.iconoSvg").value("😄"));
+                .andExpect(jsonPath("$.iconoSvg").value("Sparkles"));
 
         // Validar registro en auditoría
         List<AuditoriaAdmin> auditorias = repositorioAuditoriaAdmin.findTop50ByOrderByFechaEventoDesc();
@@ -264,5 +260,34 @@ class ControladorCatalogoEmocionesAdminPrueba {
 
         List<AuditoriaAdmin> auditorias = repositorioAuditoriaAdmin.findTop50ByOrderByFechaEventoDesc();
         assertThat(auditorias).anyMatch(a -> "CATALOGO_ACTIVAR_EMOCION".equals(a.getAccion()));
+    }
+
+    @Test
+    @DisplayName("HU-12: Desactivar emoción mediante DELETE directo (/api/v1/admin/emociones/{idEmocion})")
+    void debeDesactivarEmocionConMetodoDeleteDirecto() throws Exception {
+        assertThat(repositorioCatalogoEmocion.countByActivoTrue()).isGreaterThanOrEqualTo(4);
+
+        mockMvc.perform(delete("/api/v1/admin/emociones/ANSIEDAD")
+                        .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idEmocion").value("ANSIEDAD"))
+                .andExpect(jsonPath("$.activo").value(false));
+
+        EntidadCatalogoEmocion enDb = repositorioCatalogoEmocion.findById("ANSIEDAD").orElseThrow();
+        assertThat(enDb.getActivo()).isFalse();
+    }
+
+    @Test
+    @DisplayName("HU-12: Reactivar emoción mediante alias PATCH /reactivar")
+    void debeReactivarEmocionConRutaAliasReactivar() throws Exception {
+        EntidadCatalogoEmocion ansiedad = repositorioCatalogoEmocion.findById("ANSIEDAD").orElseThrow();
+        ansiedad.setActivo(false);
+        repositorioCatalogoEmocion.save(ansiedad);
+
+        mockMvc.perform(patch("/api/v1/admin/emociones/ANSIEDAD/reactivar")
+                        .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idEmocion").value("ANSIEDAD"))
+                .andExpect(jsonPath("$.activo").value(true));
     }
 }

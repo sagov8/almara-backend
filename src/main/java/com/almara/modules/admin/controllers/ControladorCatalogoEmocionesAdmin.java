@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -91,7 +92,17 @@ public class ControladorCatalogoEmocionesAdmin {
 
     /**
      * Desactiva una emoción mediante borrado lógico (HU-12: include Desactivar).
+     * Soporta tanto DELETE /{idEmocion} como PATCH /{idEmocion}/desactivar.
      */
+    @DeleteMapping("/{idEmocion}")
+    public ResponseEntity<EmocionAdminRespuesta> eliminarEmocion(
+            @PathVariable String idEmocion,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            HttpServletRequest request) {
+        log.info("DELETE /api/v1/admin/emociones/{}", idEmocion);
+        return desactivarEmocion(idEmocion, authorization, request);
+    }
+
     @PatchMapping("/{idEmocion}/desactivar")
     public ResponseEntity<EmocionAdminRespuesta> desactivarEmocion(
             @PathVariable String idEmocion,
@@ -107,8 +118,9 @@ public class ControladorCatalogoEmocionesAdmin {
 
     /**
      * Reactiva una emoción inactiva en el catálogo.
+     * Soporta tanto /{idEmocion}/activar como /{idEmocion}/reactivar.
      */
-    @PatchMapping("/{idEmocion}/activar")
+    @PatchMapping(value = {"/{idEmocion}/activar", "/{idEmocion}/reactivar"})
     public ResponseEntity<EmocionAdminRespuesta> activarEmocion(
             @PathVariable String idEmocion,
             @RequestHeader(value = "Authorization", required = false) String authorization,

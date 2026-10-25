@@ -5,11 +5,11 @@
 -- 1. Catálogo Oficial de Emociones Predeterminadas
 INSERT INTO catalogo_emocion (id_emocion, nombre_etiqueta, codigo_hex_color, codigo_hex_fondo, icono_svg, descripcion, activo)
 VALUES
-    ('FELICIDAD', 'Felicidad', '#10B981', '#D1FAE5', '😊', 'Alegría, satisfacción y bienestar general.', TRUE),
-    ('NEUTRALIDAD', 'Neutralidad', '#EAB308', '#FEF9C3', '😐', 'Estado equilibrado, tranquilo y regular.', TRUE),
-    ('PREOCUPACION', 'Preocupación', '#F97316', '#FFEDD5', '😟', 'Inquietud o tensión moderada ante una situación.', TRUE),
-    ('ENFADO', 'Enfado', '#EF4444', '#FEE2E2', '😠', 'Molestia, frustración o irritación.', TRUE),
-    ('ANSIEDAD', 'Ansiedad', '#8B5CF6', '#EDE9FE', '😰', 'Nerviosismo, agobio o estrés acumulado.', TRUE);
+    ('FELICIDAD', 'Felicidad', '#10B981', '#D1FAE5', 'Smile', 'Alegría, satisfacción y bienestar general.', TRUE),
+    ('NEUTRALIDAD', 'Neutralidad', '#EAB308', '#FEF9C3', 'Meh', 'Estado equilibrado, tranquilo y regular.', TRUE),
+    ('PREOCUPACION', 'Preocupación', '#F97316', '#FFEDD5', 'Frown', 'Inquietud o tensión moderada ante una situación.', TRUE),
+    ('ENFADO', 'Enfado', '#EF4444', '#FEE2E2', 'Flame', 'Molestia, frustración o irritación.', TRUE),
+    ('ANSIEDAD', 'Ansiedad', '#8B5CF6', '#EDE9FE', 'CloudRain', 'Nerviosismo, agobio o estrés acumulado.', TRUE);
 
 -- 2. Catálogo Oficial de Zonas Urbanas de Referencia (Bogotá H3 Resolución 9)
 INSERT INTO zona (id_celda_h3, resolucion_h3, latitud_centroide, longitud_centroide, zona_manual_id, nombre_zona_manual, umbral_minimo)

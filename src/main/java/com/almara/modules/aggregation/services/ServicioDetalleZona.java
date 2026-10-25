@@ -278,13 +278,13 @@ public class ServicioDetalleZona {
     }
 
     private String resolverIcono(TipoEmocion emocion) {
-        if (emocion == null) return "📍";
+        if (emocion == null) return "MapPin";
         return switch (emocion) {
-            case FELICIDAD -> "😊";
-            case NEUTRALIDAD -> "😐";
-            case PREOCUPACION -> "😟";
-            case ENFADO -> "😡";
-            case ANSIEDAD -> "😰";
+            case FELICIDAD -> "Smile";
+            case NEUTRALIDAD -> "Meh";
+            case PREOCUPACION -> "Frown";
+            case ENFADO -> "Flame";
+            case ANSIEDAD -> "CloudRain";
         };
     }
 

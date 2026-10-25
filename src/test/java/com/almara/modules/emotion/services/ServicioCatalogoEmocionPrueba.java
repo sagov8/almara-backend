@@ -71,11 +71,11 @@ class ServicioCatalogoEmocionPruebaTest {
 
         assertNotNull(resultado);
         assertEquals(TipoEmocion.values().length, resultado.size());
-        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.FELICIDAD && "😊".equals(e.getIconoSvg())));
-        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.NEUTRALIDAD && "😐".equals(e.getIconoSvg())));
-        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.PREOCUPACION && "😟".equals(e.getIconoSvg())));
-        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.ENFADO && "😠".equals(e.getIconoSvg())));
-        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.ANSIEDAD && "😰".equals(e.getIconoSvg())));
+        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.FELICIDAD && "Smile".equals(e.getIconoSvg())));
+        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.NEUTRALIDAD && "Meh".equals(e.getIconoSvg())));
+        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.PREOCUPACION && "Frown".equals(e.getIconoSvg())));
+        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.ENFADO && "Flame".equals(e.getIconoSvg())));
+        assertTrue(resultado.stream().anyMatch(e -> e.getId() == TipoEmocion.ANSIEDAD && "CloudRain".equals(e.getIconoSvg())));
         verify(repositorioCatalogoEmocion).findByActivoTrue();
     }
 

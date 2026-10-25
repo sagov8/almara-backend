@@ -167,7 +167,7 @@ class ControladorDashboardInstitucionalPrueba {
                 // Validar k-anonimato: ZONA-PANTEON-PROCERES tiene < 5 reportes
                 .andExpect(jsonPath("$.resumenZonas[?(@.zonaManualId == 'ZONA-PANTEON-PROCERES')].cumpleUmbral", contains(false)))
                 .andExpect(jsonPath("$.resumenZonas[?(@.zonaManualId == 'ZONA-PANTEON-PROCERES')].emocionPredominante", contains((String) null)))
-                .andExpect(jsonPath("$.resumenZonas[?(@.zonaManualId == 'ZONA-PANTEON-PROCERES')].icono", contains("🔒")))
+                .andExpect(jsonPath("$.resumenZonas[?(@.zonaManualId == 'ZONA-PANTEON-PROCERES')].icono", contains("Lock")))
                 // Validar zona con suficientes reportes (k >= 5)
                 .andExpect(jsonPath("$.resumenZonas[?(@.zonaManualId == 'ZONA-PARQUE-CALDAS')].cumpleUmbral", contains(true)))
                 .andExpect(jsonPath("$.resumenZonas[?(@.zonaManualId == 'ZONA-PARQUE-CALDAS')].emocionPredominante", notNullValue()));

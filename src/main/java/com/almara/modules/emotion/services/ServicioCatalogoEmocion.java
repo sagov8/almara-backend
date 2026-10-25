@@ -75,11 +75,11 @@ public class ServicioCatalogoEmocion {
      */
     private String obtenerIconoFallback(TipoEmocion e) {
         return switch (e) {
-            case FELICIDAD -> "😊";
-            case NEUTRALIDAD -> "😐";
-            case PREOCUPACION -> "😟";
-            case ENFADO -> "😠";
-            case ANSIEDAD -> "😰";
+            case FELICIDAD -> "Smile";
+            case NEUTRALIDAD -> "Meh";
+            case PREOCUPACION -> "Frown";
+            case ENFADO -> "Flame";
+            case ANSIEDAD -> "CloudRain";
         };
     }
 
