@@ -129,6 +129,36 @@ class ControladorCatalogoEmocionesAdminPrueba {
     }
 
     @Test
+    @DisplayName("HU-12: Normalizar automáticamente ID de emoción con tildes o espacios al agregar")
+    void debeNormalizarIdConTildesYEspaciosAlAgregarEmocion() throws Exception {
+        String idNormalizadoEsperado = "ALEGRIA_URBANA";
+        if (repositorioCatalogoEmocion.existsById(idNormalizadoEsperado)) {
+            repositorioCatalogoEmocion.deleteById(idNormalizadoEsperado);
+        }
+
+        CrearEmocionSolicitud solicitud = new CrearEmocionSolicitud(
+                "Alegría Urbana",
+                "Alegría Urbana",
+                "#F59E0B",
+                "",
+                "Sun",
+                "Emoción con tildes y espacios en el ID"
+        );
+
+        mockMvc.perform(post("/api/v1/admin/emociones")
+                        .header("Authorization", "Bearer " + tokenAdmin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(solicitud)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.idEmocion").value(idNormalizadoEsperado))
+                .andExpect(jsonPath("$.nombreEtiqueta").value("Alegría Urbana"))
+                .andExpect(jsonPath("$.codigoHexFondo").value("#F59E0B"))
+                .andExpect(jsonPath("$.iconoSvg").value("Sun"));
+
+        repositorioCatalogoEmocion.deleteById(idNormalizadoEsperado);
+    }
+
+    @Test
     @DisplayName("HU-12: Rechazar adición de emoción si el identificador clave ya existe (Conflicto)")
     void debeRechazarAgregarEmocionConIdDuplicado() throws Exception {
         CrearEmocionSolicitud solicitudDuplicada = new CrearEmocionSolicitud(

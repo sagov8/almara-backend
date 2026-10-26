@@ -4,14 +4,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.text.Normalizer;
+
 /**
  * Solicitud administrativa para dar de alta una nueva emoción en el catálogo (HU-12: include Agregar).
  */
 public class CrearEmocionSolicitud {
 
     @NotBlank(message = "El identificador de la emoción es obligatorio")
-    @Size(min = 3, max = 20, message = "El identificador debe tener entre 3 y 20 caracteres")
-    @Pattern(regexp = "^[A-Z0-9_]{3,20}$", message = "El identificador debe ser alfanumérico en mayúsculas sin espacios (ej. FELICIDAD, CALMA, SORPRESA)")
+    @Size(min = 2, max = 20, message = "El identificador debe tener entre 2 y 20 caracteres")
+    @Pattern(regexp = "^[A-Z0-9_]{2,20}$", message = "El identificador debe ser alfanumérico en mayúsculas sin espacios (ej. FELICIDAD, CALMA, SORPRESA)")
     private String idEmocion;
 
     @NotBlank(message = "El nombre o etiqueta visible es obligatorio")
@@ -22,7 +24,7 @@ public class CrearEmocionSolicitud {
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "El código de color debe cumplir con la estructura hexadecimal de 7 caracteres (#RRGGBB)")
     private String codigoHexColor;
 
-    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "El código de fondo debe cumplir con la estructura hexadecimal de 7 caracteres (#RRGGBB)")
+    @Pattern(regexp = "^$|^#[0-9A-Fa-f]{6}$", message = "El código de fondo debe cumplir con la estructura hexadecimal de 7 caracteres (#RRGGBB)")
     private String codigoHexFondo;
 
     @NotBlank(message = "El ícono o recurso visual es obligatorio")
@@ -37,12 +39,41 @@ public class CrearEmocionSolicitud {
 
     public CrearEmocionSolicitud(String idEmocion, String nombreEtiqueta, String codigoHexColor,
                                  String codigoHexFondo, String iconoSvg, String descripcion) {
-        this.idEmocion = idEmocion;
-        this.nombreEtiqueta = nombreEtiqueta;
-        this.codigoHexColor = codigoHexColor;
-        this.codigoHexFondo = codigoHexFondo;
-        this.iconoSvg = iconoSvg;
-        this.descripcion = descripcion;
+        setIdEmocion(idEmocion);
+        setNombreEtiqueta(nombreEtiqueta);
+        setCodigoHexColor(codigoHexColor);
+        setCodigoHexFondo(codigoHexFondo);
+        setIconoSvg(iconoSvg);
+        setDescripcion(descripcion);
+    }
+
+    /**
+     * Normaliza el identificador quitando tildes/diacríticos, convirtiendo espacios o guiones en '_'
+     * y pasándolo a mayúsculas para evitar rechazos por acentos en español (ej. "Alegría" -> "ALEGRIA").
+     */
+    private static String normalizarId(String valor) {
+        if (valor == null) {
+            return null;
+        }
+        String sinTildes = Normalizer.normalize(valor.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .replace('ñ', 'n')
+                .replace('Ñ', 'N');
+        return sinTildes
+                .toUpperCase()
+                .replaceAll("[\\s\\-]+", "_")
+                .replaceAll("^_+|_+$", "");
+    }
+
+    private static String normalizarHex(String valor) {
+        if (valor == null) {
+            return null;
+        }
+        String limpio = valor.trim().toUpperCase();
+        if (limpio.matches("^[0-9A-F]{6}$")) {
+            return "#" + limpio;
+        }
+        return limpio;
     }
 
     public String getIdEmocion() {
@@ -50,7 +81,7 @@ public class CrearEmocionSolicitud {
     }
 
     public void setIdEmocion(String idEmocion) {
-        this.idEmocion = idEmocion;
+        this.idEmocion = normalizarId(idEmocion);
     }
 
     public String getNombreEtiqueta() {
@@ -58,7 +89,7 @@ public class CrearEmocionSolicitud {
     }
 
     public void setNombreEtiqueta(String nombreEtiqueta) {
-        this.nombreEtiqueta = nombreEtiqueta;
+        this.nombreEtiqueta = nombreEtiqueta != null ? nombreEtiqueta.trim() : null;
     }
 
     public String getCodigoHexColor() {
@@ -66,7 +97,7 @@ public class CrearEmocionSolicitud {
     }
 
     public void setCodigoHexColor(String codigoHexColor) {
-        this.codigoHexColor = codigoHexColor;
+        this.codigoHexColor = normalizarHex(codigoHexColor);
     }
 
     public String getCodigoHexFondo() {
@@ -74,7 +105,7 @@ public class CrearEmocionSolicitud {
     }
 
     public void setCodigoHexFondo(String codigoHexFondo) {
-        this.codigoHexFondo = codigoHexFondo;
+        this.codigoHexFondo = normalizarHex(codigoHexFondo);
     }
 
     public String getIconoSvg() {
@@ -82,7 +113,7 @@ public class CrearEmocionSolicitud {
     }
 
     public void setIconoSvg(String iconoSvg) {
-        this.iconoSvg = iconoSvg;
+        this.iconoSvg = iconoSvg != null ? iconoSvg.trim() : null;
     }
 
     public String getDescripcion() {
@@ -90,6 +121,6 @@ public class CrearEmocionSolicitud {
     }
 
     public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+        this.descripcion = descripcion != null ? descripcion.trim() : null;
     }
 }

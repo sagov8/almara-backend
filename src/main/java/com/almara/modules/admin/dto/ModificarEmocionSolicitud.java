@@ -18,7 +18,7 @@ public class ModificarEmocionSolicitud {
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "El código de color debe cumplir con la estructura hexadecimal de 7 caracteres (#RRGGBB)")
     private String codigoHexColor;
 
-    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "El código de fondo debe cumplir con la estructura hexadecimal de 7 caracteres (#RRGGBB)")
+    @Pattern(regexp = "^$|^#[0-9A-Fa-f]{6}$", message = "El código de fondo debe cumplir con la estructura hexadecimal de 7 caracteres (#RRGGBB)")
     private String codigoHexFondo;
 
     @NotBlank(message = "El ícono o recurso visual es obligatorio")

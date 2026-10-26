@@ -50,11 +50,17 @@ public class ManejadorGlobalExcepciones {
             camposConError.put(errorCampo.getField(), errorCampo.getDefaultMessage());
         }
 
+        String detalleCampos = camposConError.values().stream()
+                .map(String::valueOf)
+                .distinct()
+                .reduce((a, b) -> a + ". " + b)
+                .orElse("Los datos enviados no cumplen con el formato o restricciones requeridas");
+
         RespuestaError error = RespuestaError.builder()
                 .marcaTemporal(Instant.now())
                 .codigoEstado(HttpStatus.BAD_REQUEST.value())
                 .error("VALIDACION_FALLIDA")
-                .mensaje("Los datos enviados no cumplen con el formato o restricciones requeridas")
+                .mensaje(detalleCampos)
                 .ruta(peticion.getRequestURI())
                 .detallesAdicionales(camposConError)
                 .build();
